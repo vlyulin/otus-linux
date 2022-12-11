@@ -6,7 +6,7 @@ DISKS_NUMBER=6
 DISK_SIZE="100M"
 
 # Отбираем только созданные диски размером DISK_SIZE
-DISKS=$(lsblk | awk '{if ($4 == $DISK_SIZE) print "/dev/"$1;}' ORS=" ")
+DISKS=$(lsblk | awk -v dsize="$DISK_SIZE" '{if ($4 == dsize) print "/dev/"$1;}' ORS=" ")
 echo $DISKS
 
 # Подсчитываем количество дисков
