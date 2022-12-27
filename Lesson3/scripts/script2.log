@@ -1,0 +1,9 @@
+Script started on Tue 27 Dec 2022 07:43:12 PM UTC
+]0;vagrant@lvm:/var/myscripts[?1034h[root@lvm myscripts]# lvconvert --merge /dev/VolGroup00/home_snap
+File descriptor 3 (/var/myscripts/time2.txt) leaked on lvconvert invocation. Parent PID 1784: bash
+  Delaying merge since origin is open.
+  Merging of snapshot VolGroup00/home_snap will occur on next activation of VolGroup00/LogVol_Home.
+]0;vagrant@lvm:/var/myscripts[root@lvm myscripts]# exit
+exit
+
+Script done on Tue 27 Dec 2022 07:43:24 PM UTC
