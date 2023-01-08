@@ -149,7 +149,7 @@ mount|grep mnt
 
 ![mount](imgs/mount.png)
 
-#### Проверка работоспособности
+### Проверка работоспособности
 
 Проверка созданного на сервере файла /srv/share/upload/check_file
 
