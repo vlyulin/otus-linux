@@ -53,7 +53,7 @@ https://drive.google.com/open?id=1KRBNW33QWqbvbVHa3hLJivOAt60yukkg
 lsblk
 ```
 
-![lsblk](imgs\lsblk.png)
+![lsblk](imgs/lsblk.png)
 
 Создание пулов в режиме RAID 1:
 ```
