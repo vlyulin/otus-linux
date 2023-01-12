@@ -10,6 +10,8 @@ Vagrant.configure(2) do |config|
 	config.vm.provider "virtualbox" do |v|
 		v.memory = 256
 		v.cpus = 1
+		v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+		v.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
 	end
 
 	config.vm.define "nfss" do |nfss|
@@ -25,5 +27,20 @@ Vagrant.configure(2) do |config|
 		nfsc.vm.hostname = "nfsc"
 		nfsc.vm.provision "shell", path: "nfsc_script.sh"
 	end
+
+        # https://computingforgeeks.com/configure-nfsv3-and-nfsv4-on-centos-7/
+	config.vm.define "nfsv4s" do |nfss|
+                nfss.vm.network "private_network", ip: "192.168.50.15",
+                virtualbox__intnet: "net1"
+                nfss.vm.hostname = "nfsv4s.mydomain.test"
+                nfss.vm.provision "shell", path: "nfsv4s_script.sh"
+        end
+
+        config.vm.define "nfsv4c" do |nfsc|
+                nfsc.vm.network "private_network", ip: "192.168.50.16",
+                virtualbox__intnet: "net1"
+                nfsc.vm.hostname = "nfsv4c.mydomain.test"
+                nfsc.vm.provision "shell", path: "nfsv4c_script.sh"
+        end
 end
 
