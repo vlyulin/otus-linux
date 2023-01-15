@@ -23,6 +23,8 @@ vagrant up --debug &> vagrant.log
 Выполнить на хосте:
 http://localhost:8080/repo/
 
+![index-repo](imgs/index-repo.png)
+
 Или в guest:
 ```
 vagrant ssh
