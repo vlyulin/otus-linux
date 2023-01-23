@@ -9,6 +9,7 @@
 * [ДЗ: Практические навыки работы с ZFS](Lesson4/README.md)
 * [ДЗ: Vagrant стенд для NFS](Lesson5/README.md)
 * [ДЗ: Размещаем свой RPM в своем репозитории](Lesson6/README.md)
+* [ДЗ: Работа с загрузчиком](Lesson7/README.md)
 
 
 

@@ -4,4 +4,4 @@ sata*
 *.old
 *.save
 mnt
-
+*.swp
