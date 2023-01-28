@@ -1,0 +1,13 @@
+[Unit]
+Description=My watchlog service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/sysconfig/watchlog
+WorkingDirectory=/home/vagrant
+ExecStart=/opt/watchlog.sh $WORD $LOG
+
+[Install]
+WantedBy=multi-user.target
+
+

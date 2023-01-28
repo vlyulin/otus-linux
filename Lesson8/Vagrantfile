@@ -1,0 +1,31 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure(2) do |config|
+	config.vm.box = "centos/stream8"
+	config.vm.box_version = "20210210.0"
+	config.vbguest.auto_update = false if Vagrant.has_plugin?('vagrant-vbguest')
+        config.vm.network 'forwarded_port', host: 8007, guest: 80
+	config.vm.network 'forwarded_port', host: 8008, guest: 8008
+        # config.vm.synced_folder ".", "/vagrant", disabled: true
+	
+	config.vm.provider "virtualbox" do |v|
+		v.memory = 256
+		v.cpus = 1
+		v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+		v.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
+	end
+
+	config.vm.define "guest" do |guest|
+		guest.vm.network "private_network", ip: "192.168.50.10",
+		virtualbox__intnet: "net1"
+		guest.vm.hostname = "guest"
+	end
+
+	config.vm.synced_folder ".", "/vagrant"
+	config.vm.provision "init", type: "shell", path: "./scripts/init.sh"
+	config.vm.provision "spawn-fcgi", type: "shell", path: "./scripts/spawn-fcgi.sh"
+	config.vm.provision "httpd-init", type: "shell", path: "./scripts/httpd-init.sh"
+
+end
+
