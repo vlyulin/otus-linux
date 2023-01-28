@@ -80,7 +80,7 @@ sudo -i
 systemctl status spawn-fcgi
 ```
 
-!(spawn-fcgi-service-status)[imgs/spawn-fcgi-service-status.png]
+![spawn-fcgi-service-status](imgs/spawn-fcgi-service-status.png)
 
 ### Дополнить юнит-файл apache httpd возможностью запустить несколько инстансов сервера с разными конфигами
 
@@ -100,21 +100,21 @@ systemctl status spawn-fcgi
 systemctl status httpd@first
 ```
 
-!(httpd@first-status)[imgs/httpd@first-status.png)
+![httpd@first-status](imgs/httpd@first-status.png)
 
 Проверка второго сервиса
 ```
 systemctl status httpd@second
 ```
 
-!(httpd@second-status)[imgs/httpd@second-status.png)
+![httpd@second-status](imgs/httpd@second-status.png)
 
 Проверка портов:
 ```
 ss -tnulp | grep httpd
 ```
 
-!(check-ss)[imgs/check-ss.png)
+![check-ss](imgs/check-ss.png)
 
 
 
