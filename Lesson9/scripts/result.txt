@@ -1,0 +1,25 @@
+08/Feb/2023:22:05:05
+Обработка с 04/Feb/2023:00:00:00 по 08/Feb/2023:22:05:05
+
+
+Список IP адресов с наибольшим кол-вом запросов c момента последнего запуска скрипта:
+     76 89.144.208.32
+     34 185.44.77.153
+     22 138.201.30.176
+
+
+Список URL адресов с наибольшим кол-вом запросов c момента последнего запуска скрипта:
+     68 http://www.almhuette-raith.at/
+     41 http://www.almhuette-raith.at/index.php?option=com_phocagallery&view=category&id=1&Itemid=53
+     23 http://www.website-datenbank.de/
+
+
+Ошибки веб-сервера/приложения:
+132.154.58.174 - - [04/Feb/2023:00:24:17 +0100] "GET /favicon.ico HTTP/1.1" 404 217 "http://www.almhuette-raith.at/apache-log/access.log" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/109.0" "-"
+62.138.2.160 - - [04/Feb/2023:00:55:02 +0100] "GET /sitemap.xml HTTP/1.1" 404 217 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:103.0) Gecko/20100101 Firefox/103.0" "-"
+191.101.31.254 - - [04/Feb/2023:02:42:05 +0100] "GET /index.php?option=com_easyblog&view=dashboard&layout=write HTTP/1.1" 404 1397 "http://www.almhuette-raith.at" "Mozilla/5.0 (Macintosh; Intel Mac OS X 12_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.4 Safari/605.1.15" "-"
+
+
+Список всех кодов HTTP ответа с указанием их кол-ва с момента последнего запуска скрипта:
+    213 200
+     49 404
