@@ -13,10 +13,9 @@ DATE=$(date +"%d/%b/%Y:%H:%M:%S")
 LOCKFILE=/var/run/worker/lock.pid
 
 # Файл для сохранение даты и времени запуска 
-LASTSTARTDATEFILE=last_start_date.save
-# ACCESSLOGFILE=/home/vagrant/logs/access.log
-ACCESSLOGFILE=./access.log
-RESULTFILE=./result.txt
+LASTSTARTDATEFILE=/home/vagrant/logs/last_start_date.save
+ACCESSLOGFILE=/home/vagrant/logs/access.log
+RESULTFILE=/home/vagrant/logs/result.txt
 
 # functions
 
@@ -149,7 +148,7 @@ fi
 start
 
 # Скачиваем лог
-wget http://www.almhuette-raith.at/apache-log/access.log "$ACCESSLOGFILE"
+wget http://www.almhuette-raith.at/apache-log/access.log $ACCESSLOGFILE
 
 # Обработка лог файла.
 logfile_processing $outrowsnum $RESULTFILE

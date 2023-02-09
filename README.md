@@ -11,6 +11,7 @@
 * [ДЗ: Размещаем свой RPM в своем репозитории](Lesson6/README.md)
 * [ДЗ: Работа с загрузчиком](Lesson7/README.md)
 * [ДЗ: Systemd](Lesson8/README.md)
+* [ДЗ: Пишем скрипт](Lesson9/README.md)
 
 
 
