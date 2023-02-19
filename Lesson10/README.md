@@ -24,12 +24,26 @@
 ## Запуск
 
 ```
-vagrant up
+./myps.sh ax
 ```
 
 ## Файлы
+myps.sh - скрипт домашнего задания.
 
 ## Результат выполнения
+
+1. Результат выполнения 'myps.sh ax'
+
+![myps-begin.png](imgs/myps-begin.png)
+
+![myps-end.png](imgs/myps-end.png)
+
+2. Для сравнения результат выполнения команды 'ps ax'
+
+![ps-ax-begin.png](imgs/ps-ax-begin.png)
+
+![ps-ax-end.png](imgs/ps-ax-rnd.png)
+
 
 
 
