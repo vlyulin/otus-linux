@@ -38,11 +38,11 @@ myps.sh - скрипт домашнего задания.
 
 ![myps-end.png](imgs/myps-end.png)
 
-2. Для сравнения результат выполнения команды 'ps ax'
+2. Для сравнения, результат выполнения команды 'ps ax'
 
 ![ps-ax-begin.png](imgs/ps-ax-begin.png)
 
-![ps-ax-end.png](imgs/ps-ax-rnd.png)
+![ps-ax-end.png](imgs/ps-ax-end.png)
 
 
 
