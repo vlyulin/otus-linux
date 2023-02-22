@@ -56,7 +56,7 @@ ansible-playbook playbooks/nginx.yml
 
 Результат установки с помощью команды 'ansible-playbook nginx-with-role.yml'
 
-![install-with-role](imgs/install-with-role.yml)
+![install-with-role](imgs/install-with-role.png)
 
 Если не установить параметр "become: yes"
 
