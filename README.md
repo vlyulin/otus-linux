@@ -12,6 +12,7 @@
 * [ДЗ: Работа с загрузчиком](Lesson7/README.md)
 * [ДЗ: Systemd](Lesson8/README.md)
 * [ДЗ: Пишем скрипт](Lesson9/README.md)
+* [ДЗ: Работаем с процессами](Lesson10/README.md)
 
 
 
