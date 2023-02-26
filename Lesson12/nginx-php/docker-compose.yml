@@ -1,0 +1,26 @@
+version: "3.7"
+services:
+  php:
+    build:
+      context: ./
+      dockerfile: php.Dockerfile
+    volumes:
+      - ./files/index.php:/var/www/php/index.php
+    networks:
+      otus:
+  nginx:
+    build:
+      context: ./
+      dockerfile: nginx.Dockerfile
+    depends_on: 
+        - php
+    volumes:
+      - ./files/index.php:/var/www/php/index.php
+    ports:
+        - "8082:80"
+    networks:
+      otus:
+
+networks:
+  otus:
+
