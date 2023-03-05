@@ -15,8 +15,8 @@
 * [ДЗ: Работаем с процессами](Lesson10/README.md)
 * [ДЗ: Первые шаги с Ansible](Lesson11/README.md)
 * [ДЗ: Docker, docker-compose, dockerfile](Lesson12/README.md)
-* [Практика с SELinux](Lesson13/REASME.md)
-* [Настройка мониторинга](Lesson14/README.md)
+* [ДЗ: Практика с SELinux](Lesson13/REASME.md)
+* [ДЗ: Настройка мониторинга](Lesson14/README.md)
 
 
 
