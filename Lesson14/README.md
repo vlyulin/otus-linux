@@ -112,6 +112,10 @@ http://localhost:9090
 
 ### Заметки
 
+В ДЗ настроена "pull based archutecture"
+
+![arch](imgs/arch.png)
+
 Сбор метрик локального хоста выполняется node-exporter настраиваемого в docker-compose.yml. Для которого настраиваются пути к локальным директориям в режиме read-only:
 
 ```
@@ -121,7 +125,7 @@ volumes:
       - /:/rootfs:ro
 ```
 
-Получение метрик с хоста Prometheus настраивается в файле prometheus.yml
+Получение метрик с локального хоста для системы Prometheus настраивается в файле prometheus.yml
 
 ```
 - job_name: "node"
