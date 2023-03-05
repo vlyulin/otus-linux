@@ -16,6 +16,7 @@
 * [ДЗ: Первые шаги с Ansible](Lesson11/README.md)
 * [ДЗ: Docker, docker-compose, dockerfile](Lesson12/README.md)
 * [Практика с SELinux](Lesson13/REASME.md)
+* [Настройка мониторинга](Lesson14/README.md)
 
 
 
