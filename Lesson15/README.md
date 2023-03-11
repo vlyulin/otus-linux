@@ -11,7 +11,7 @@ https://docs.google.com/document/d/1lOFe3rv0QcnvOTNfQm0OMHbNQ0Cet6AR/edit?usp=sh
 
 ## Выполнение ДЗ
 
-**_NOTE:_** Без задания со **
+**_NOTE:_** __Без задания со *__
 
 ### Запуск
 
@@ -51,9 +51,13 @@ ssh -p root@127.0.0.1
 
 ![otus-login](imgs/otus-login.png)
 
+Под Пользователем otus войти не удалось, так как сегодня 11.03.23 - суббота.
+
 Соединение под пользователем otusadm
 
 ![otusadm-login](imgs/otusadm-login.png)
+
+Под пользователем otusadm войти удалось, так как он включен в группу admin.
 
 
 
