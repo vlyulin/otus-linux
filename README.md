@@ -19,6 +19,8 @@
 * [ДЗ: Настройка мониторинга](Lesson14/README.md)
 * [ДЗ: PAM](Lesson15/README.md)
 
+* [ДЗ: Разворачиваем сетевую лобораторию](Lesson18/README.md)
+
 
 
 
