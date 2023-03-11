@@ -11,7 +11,7 @@ https://docs.google.com/document/d/1lOFe3rv0QcnvOTNfQm0OMHbNQ0Cet6AR/edit?usp=sh
 
 ## Выполнение ДЗ
 
-**_NOTE:_** __Без задания со *__
+**_NOTE:_** _Без задания со *_
 
 ### Запуск
 
