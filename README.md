@@ -17,6 +17,8 @@
 * [ДЗ: Docker, docker-compose, dockerfile](Lesson12/README.md)
 * [ДЗ: Практика с SELinux](Lesson13/REASME.md)
 * [ДЗ: Настройка мониторинга](Lesson14/README.md)
+* [ДЗ: PAM](Lesson15/README.md)
+
 
 
 
