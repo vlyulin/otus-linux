@@ -124,23 +124,7 @@ A: Нет.
 vagrant up
 ```
 
-#### Проверка работоспособности
-
-Проверка включения forward на роутерах
-
-```
-sysctl net.ipv4.ip_forward
-```
-
-Пример office2Router
-
-![ip_forward](imgs/ip_forward.png)
-
-Доступность интернета и других узлов на примере office2Server
-
-![availability](imgs/availability.png)
-
-Примечание: 
+Примечание:
 проблемы с provision Debian серверов. Не всегда выполняется.
 Проверять что прописалось в файле /etc/network/interfaces
 Если в них нет строк удаления default роутинга для eth0 и установка его для eth1, то как обходной вариант прописать его вручную.
@@ -167,4 +151,29 @@ post-up ip route add 0.0.0.0/0 via 192.168.1.1
 ```
 ifdown eth0 && ifup eth0 && ifdown eth1 && ifup eth1
 ```
+
+#### Проверка работоспособности
+
+Проверка включения forward на роутерах
+
+```
+sysctl net.ipv4.ip_forward
+```
+
+Пример office2Router
+
+![ip_forward](imgs/ip_forward.png)
+
+Доступность интернета и других узлов на примере office2Server
+
+![availability](imgs/availability.png)
+
+Трасировка от office1Server к ya.ru
+
+![traceroute1](imgs/traceroute-office1Server.png)
+
+Трасировка от office2Server к ya.ru
+
+![traceroute2](imgs/traceroute-office2Server.png)
+
 
