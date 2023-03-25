@@ -1,0 +1,18 @@
+---
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+{%for iface in ansible_interfaces %}
+{%if iface != "lo" %}
+    {{ iface }}:
+      addresses:
+      - {{ hostvars[inventory_hostname]['ansible_%s' | format(iface)]['ipv4']['address'] }}/{{ MASKS | selectattr("subnet","equalto",hostvars[inventory_hostname]['ansible_%s' | format(iface)]['ipv4']['netmask']) | map(attribute='prefix') | join(' ')}}
+{%if ROUTE.addr in hostvars[inventory_hostname]['ansible_%s' | format(iface)]['ipv4']['address'] %}
+      routes:
+      - to: 0.0.0.0/0
+        via: {{ ROUTE.via }}
+{% endif %}
+{% endif %}
+{% endfor %}
+

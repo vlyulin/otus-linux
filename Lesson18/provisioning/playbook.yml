@@ -1,0 +1,230 @@
+---
+# Настройка маршрутизации транзитных пакетов для роутеров
+- hosts: routers
+  become: true
+  become_user: root
+  tasks:
+  - name: Update sysctl param.
+    sysctl:
+      name: net.ipv4.conf.all.forwarding
+      value: '1'
+      state: present
+      reload: yes
+
+####### inetRouter ####### 
+- hosts: "inetRouter"
+  gather_facts: yes
+  become: true
+  become_user: root
+  roles:
+    - { role: nat, when: ansible_hostname == "inetRouter" }
+
+- name: set up route on inetRouter
+  hosts: "inetRouter"
+  become: true
+  become_user: root
+  tasks: 
+  - name: set route
+    template:
+      src: templates/inetRouter-routes.j2
+      dest: /etc/sysconfig/network-scripts/route-eth1
+  - name: Restart network.
+    service:
+      name: network
+      state: restarted
+            
+####### centralRouter #######
+- name: centralRouter config
+  hosts: "centralRouter"
+  become: true
+  become_user: root
+  tasks:
+    - name: Disable default route.
+      lineinfile:
+        state: present
+        insertafter: EOF
+        dest: /etc/sysconfig/network-scripts/ifcfg-eth0
+        line: DEFROUTE=no
+    - name: Set default gateway.
+      lineinfile:
+        state: present
+        insertafter: EOF
+        dest: /etc/sysconfig/network-scripts/ifcfg-eth1
+        line: GATEWAY=192.168.255.1
+    - name: Set up routes to office1-net.
+      template:
+        src: templates/centralRouter-office1-net.j2
+        dest: /etc/sysconfig/network-scripts/route-eth5
+    - name: Set up routes to office2-net.
+      template:
+        src: templates/centralRouter-office2-net.j2
+        dest: /etc/sysconfig/network-scripts/route-eth6
+    - name: Restart net.
+      service:
+        name: network
+        state: restarted
+
+####### centralServer #######
+
+- name: CentralServer Configuration
+  hosts: "centralServer"
+  become: true
+  become_user: root
+  tasks:
+    - name: Disable default route.
+      lineinfile:
+        state: present
+        insertafter: EOF
+        dest: /etc/sysconfig/network-scripts/ifcfg-eth0
+        line: DEFROUTE=no
+    - name: Set default gateway.
+      lineinfile:
+        state: present
+        insertafter: EOF
+        dest: /etc/sysconfig/network-scripts/ifcfg-eth1
+        line: GATEWAY=192.168.0.1
+    - name: Restart network.
+      service:
+        name: network
+        state: restarted
+
+####### office1Router #######
+- name: office1Router routes
+  become: true
+  become_user: root
+  hosts: "office1Router"
+  vars:
+    ROUTE:
+      addr: "192.168.255.10"
+      via: "192.168.255.9"
+    MASKS: [
+      { "subnet": "255.255.255.0", "prefix": "24" },
+      { "subnet": "255.255.255.128", "prefix": "25" },
+      { "subnet": "255.255.255.192", "prefix": "26" },
+      { "subnet": "255.255.255.224", "prefix": "27" },
+      { "subnet": "255.255.255.240", "prefix": "28" },
+      { "subnet": "255.255.255.248", "prefix": "29" },
+      { "subnet": "255.255.255.252", "prefix": "30" }
+    ]
+  tasks:
+  - name: Set router.
+    template:
+      src: templates/ubuntu_netplan.j2
+      dest: /etc/netplan/50-vagrant.yaml
+  - name: Apply netplan
+    command: netplan apply
+
+####### office1Server #######
+- name: office1Server routes
+  become: true
+  become_user: root
+  hosts: "office1Server"
+  vars:
+    ROUTE:
+      addr: "192.168.2.130"
+      via: "192.168.2.129"
+    MASKS: [
+      { "subnet": "255.255.255.0", "prefix": "24" },
+      { "subnet": "255.255.255.128", "prefix": "25" },
+      { "subnet": "255.255.255.192", "prefix": "26" },
+      { "subnet": "255.255.255.224", "prefix": "27" },
+      { "subnet": "255.255.255.240", "prefix": "28" },
+      { "subnet": "255.255.255.248", "prefix": "29" },
+      { "subnet": "255.255.255.252", "prefix": "30" }
+    ]
+  tasks:
+  - name: Set router.
+    template:
+      src: templates/ubuntu_netplan.j2
+      dest: /etc/netplan/50-vagrant.yaml
+  - name: Apply netplan
+    command: netplan apply
+
+####### office2Router #######
+- name: Office2Router routs.
+  become: true
+  become_user: root
+  hosts: "office2Route"
+  tasks:
+  - name: Set routes.
+    template:
+      src: templates/office2Router-interfaces.j2
+      dest: /etc/network/interfaces
+  - name: Restart network.
+    service: 
+      name: networking
+      state: restarted
+
+####### office2Server #######
+- name: office2Server Routes
+  become: true
+  become_user: root
+  hosts: "office2Server"
+  tasks:
+  - name: Set default router.
+    template:
+      src: templates/office2Server-interfaces.j2
+      dest: /etc/network/interfaces
+      backup: true
+  - name: restart net
+    service:
+      name: networking
+      state: restarted
+
+##### Common tasks #######
+- name: Install traceroute on Centos.
+  hosts: "inetRouter:centralRouter"
+  become: true
+  become_user: root
+  tasks:
+    - name: Install traceroute.
+      yum:
+        name: traceroute
+        state: present
+      ignore_errors: yes
+
+# On Ubuntu use tracepath instead of traceroute. It is preinstalled already.
+# - name: Install traceroute on Ubuntu.
+#  hosts: "office1Router:office1Server"
+#  become: true
+#  become_user: root
+#  tasks:
+#    - name: Update ubuntu cache
+#      apt:
+#        upgrade: yes
+#        update_cache: yes
+#    - name: Install traceroute.
+#      apt:
+#        name: inetutils-traceroute
+#        state: present
+
+- name: Install traceroute on Debian.
+  hosts: "office2Router:office2Server"
+  become: true
+  become_user: root
+  tasks:
+    - name: Install traceroute.
+      apt:
+        name: traceroute
+        state: present
+      ignore_errors: yes
+
+- name: Update hosts
+  hosts: all
+  become: true
+  become_user: root
+  tasks:
+  - name: Setup hosts
+    lineinfile:
+      path: /etc/hosts
+      state: present
+      line: "{{ item }}"
+    with_items:
+      - '192.168.255.1 inetRouter'
+      - '192.168.255.2 centralRouter'
+      - '192.168.255.10 office1Router'
+      - '192.168.255.6 office2Router'
+      - '192.168.0.2 centralServer'
+      - '192.168.2.130 office1Server'
+      - '192.168.1.2 office2Server'
+

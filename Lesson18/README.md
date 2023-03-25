@@ -118,4 +118,53 @@ A: Нет.
 
 ![full-net](imgs/full-net.png)
 
+#### Установка окружения
+
+```
+vagrant up
+```
+
+#### Проверка работоспособности
+
+Проверка включения forward на роутерах
+
+```
+sysctl net.ipv4.ip_forward
+```
+
+Пример office2Router
+
+![ip_forward](imgs/ip_forward.png)
+
+Доступность интернета и других узлов на примере office2Server
+
+![availability](imgs/availability.png)
+
+Примечание: 
+проблемы с provision Debian серверов. Не всегда выполняется.
+Проверять что прописалось в файле /etc/network/interfaces
+Если в них нет строк удаления default роутинга для eth0 и установка его для eth1, то как обходной вариант прописать его вручную.
+
+**office2Router**
+```
+# Delete default router
+post-up ip route del default dev eth0 || true
+#default route
+post-up ip route add 0.0.0.0/0 via 192.168.255.5
+```
+См. provisioning/templates/office2Router-interfaces.j2
+
+**office2Server**
+```
+# Delete default router
+post-up ip route del default dev eth0 || true
+# Default route
+post-up ip route add 0.0.0.0/0 via 192.168.1.1
+```
+См. provisioning/templates/office2Server-interfaces.j2
+
+После чего выполнить команду
+```
+ifdown eth0 && ifup eth0 && ifdown eth1 && ifup eth1
+```
 
