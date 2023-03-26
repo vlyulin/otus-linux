@@ -21,6 +21,5 @@
 
 * [ДЗ: Разворачиваем сетевую лобораторию](Lesson18/README.md)
 
-
-
+* [ДЗ: Сценарии iptables](Lesson20/README.md)
 
