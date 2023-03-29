@@ -105,12 +105,14 @@ vagrant up
 ```
 
 Попытка подключения без knock.sh скрипта:
+
 ![ssh-without-knock](imgs/ssh-without-knock.png)
 
 Подключение не выполнено.
 
 Подключение с использованием knock.sh скрипта:
-![ssh-with-knock](imgs/ssh-with-knock)
+
+![ssh-with-knock](imgs/ssh-with-knock.png)
 
 Подключение успешно, т.к. скрипт knock.sh последовательно выполнил присоединение к портам 8881, 7777 и 9991, после чего была возможность в течение 30 секунд выполнить ssh подключение.
 
