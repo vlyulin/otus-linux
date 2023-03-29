@@ -1,0 +1,9 @@
+#!/bin/bash
+HOST=$1
+shift
+
+ports=(8881 7777 9991)
+for PORT in "${ports[@]}"
+do
+        sudo nmap -Pn --max-retries 0 -p $PORT $HOST
+done

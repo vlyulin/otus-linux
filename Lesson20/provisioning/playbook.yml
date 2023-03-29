@@ -1,0 +1,184 @@
+---
+# Настройка маршрутизации транзитных пакетов для роутеров
+- hosts: routers
+  become: true
+  become_user: root
+  tasks:
+  - name: Update sysctl param.
+    sysctl:
+      name: net.ipv4.conf.all.forwarding
+      value: '1'
+      state: present
+      reload: yes
+
+####### inetRouter ####### 
+- hosts: "inetRouter"
+  gather_facts: yes
+  become: true
+  become_user: root
+  tasks:
+  - name: Install iptables
+    yum:
+      name:
+        - iptables
+        - iptables-services
+      state: present
+      update_cache: true
+  - name: Copy iptables
+    template:
+      src: templates/inetRouter-iptables.j2
+      dest: /etc/sysconfig/iptables
+  - name: Enable iptables
+    service:
+      name: iptables
+      state: restarted
+      enabled: true     
+  - name: Configure routes
+    template:
+      src: templates/inetRouter-routes.j2
+      dest: /etc/sysconfig/network-scripts/route-eth1
+      owner: root
+      group: root
+      mode: 0644
+  - name: Restart network.
+    service:
+      name: network
+      state: restarted
+
+####### inetRouter2 ####### 
+- hosts: "inetRouter2"
+  gather_facts: no
+  become: true
+  become_user: root
+  tasks:
+  - name: Install iptables
+    yum:
+      name:
+        - iptables
+        - iptables-services
+      state: present
+      update_cache: true
+  - name: Copy iptables
+    template:
+      src: templates/inetRouter2-iptables.j2
+      dest: /etc/sysconfig/iptables
+  - name: Enable iptables
+    service:
+      name: iptables
+      state: restarted
+      enabled: true
+  - name: Configure routes
+    template:
+      src: templates/inetRouter2-routes.j2
+      dest: /etc/sysconfig/network-scripts/route-eth1
+      owner: root
+      group: root
+      mode: 0644
+  - name: Restart network.
+    service:
+      name: network
+      state: restarted
+
+####### centralRouter #######
+- name: centralRouter config
+  hosts: "centralRouter"
+  become: true
+  become_user: root
+  tasks:
+    - name: install nmap
+      yum:
+        name:
+          - nmap
+        state: present        
+    - name: Disable default route.
+      lineinfile:
+        insertafter: EOF
+        dest: /etc/sysconfig/network-scripts/ifcfg-eth0
+        line: DEFROUTE=no
+    - name: Set default gateway.
+      lineinfile:
+        insertafter: EOF
+        dest: /etc/sysconfig/network-scripts/ifcfg-eth1
+        line: GATEWAY=192.168.255.1    
+    - name: Restart net.
+      service:
+        name: network
+        state: restarted
+    - name: upload knock script
+      template:
+        src: templates/knock-sh.j2
+        dest: /root/knock.sh
+        owner: root
+        group: root
+        mode: 0755
+
+####### centralServer #######
+
+- name: CentralServer Configuration
+  hosts: "centralServer"
+  become: true
+  become_user: root
+  tasks:
+    - name: Disable default route.
+      lineinfile:
+        state: present
+        insertafter: EOF
+        dest: /etc/sysconfig/network-scripts/ifcfg-eth0
+        line: DEFROUTE=no
+
+    - name: Set default gateway.
+      lineinfile:
+        state: present
+        insertafter: EOF
+        dest: /etc/sysconfig/network-scripts/ifcfg-eth1
+        line: GATEWAY=192.168.0.1
+
+    - name: Restart network.
+      service:
+        name: network
+        state: restarted
+
+    - name: Install EPEL Repo
+      yum:
+        name: epel-release
+        state: present
+
+    - name: Install NGINX
+      yum:
+        name: nginx
+        state: present
+
+    - name: Restart NGINX
+      systemd:
+        name: nginx
+        state: started
+
+##### Common tasks #######
+- name: Install traceroute on Centos.
+  hosts: "inetRouter:centralRouter"
+  become: true
+  become_user: root
+  tasks:
+    - name: Install traceroute.
+      yum:
+        name: traceroute
+        state: present
+      ignore_errors: yes
+
+- name: Update hosts
+  hosts: all
+  become: true
+  become_user: root
+  tasks:
+  - name: Setup hosts
+    lineinfile:
+      path: /etc/hosts
+      state: present
+      line: "{{ item }}"
+    with_items:
+      - '192.168.255.1 inetRouter'
+      - '192.168.255.2 centralRouter'
+      - '192.168.0.2 centralServer'
+      - '162.168.0.34 inetRouter2'
+
+  
