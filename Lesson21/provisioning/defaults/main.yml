@@ -1,0 +1,19 @@
+symmetric_routing: true
+
+router_id:
+  -  router_name: router1
+     id: 1.1.1.1
+     ip1: 10.0.10.1
+     ip2: 10.0.12.1
+     ip3: 192.168.10.1
+  -  router_name: router2
+     id: 2.2.2.2
+     ip1: 10.0.10.2
+     ip2: 10.0.11.2
+     ip3: 192.168.20.1
+  -  router_name: router3
+     id: 3.3.3.3
+     ip1: 10.0.11.1
+     ip2: 10.0.12.2
+     ip3: 192.168.30.1
+
