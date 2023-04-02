@@ -27,8 +27,6 @@ https://docs.google.com/document/d/1c3p-2PQl-73G8uKJaqmyCaw_CtRQipAt/edit?usp=sh
 
 ## Настройка окружения
 
-3. Запуск окружения
-
 ```
 vagrant up
 ```
@@ -75,7 +73,7 @@ tcpdump -i enp0s9
 
 ![router2-enp0s9-asym](imgs/asymetric/router2-enp0s9-asym.png)
 
-Видим что данный порт только получает ICMP-трафик с адреса 192.168.10.1
+Видим что данный порт только отправляет ICMP-трафик на адрес 192.168.10.1
 
 На router2 запускаем tcpdump, который будет смотреть трафик только на порту enp0s8:
 
@@ -85,7 +83,7 @@ tcpdump -i enp0s8
 
 ![router2-enp0s8-asym](imgs/asymetric/router2-enp0s8-asym.png)
 
-Видим что данный порт только отправляет ICMP-трафик на адрес 192.168.10.1.
+Видим что данный порт только получает ICMP-трафик с адреса 192.168.10.1.
 
 Таким образом мы видим ассиметричный роутинг.
 
