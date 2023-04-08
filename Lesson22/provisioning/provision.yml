@@ -1,0 +1,84 @@
+---
+- name: VPN
+  hosts: all
+  become: true
+  become_user: root
+  gather_facts: no
+  vars_files:
+    - defaults/main.yml
+
+  tasks:
+  # - name: dnf upgrade libmodulemd
+  #    shell: 
+  #      "dnf upgrade -y libmodulemd"
+  #    register: os_info
+
+  #  - debug:
+  #      msg: ""
+
+    - name: Install EPEL Repo package from standart repo
+      yum:
+        name: epel-release
+        state: present
+
+  #   - name: Set timezone to Europe/Moscow
+  #    timezone:
+  #      name: Europe/Moscow
+
+  #  - name: Restart chronyd
+  #    service:
+  #      name: chronyd
+  #      state: restarted
+
+    - name: install soft
+      yum:
+        name:
+          - vim
+          - traceroute
+          - tcpdump
+          - net-tools
+          - openvpn
+          - iperf3
+        state: present
+        update_cache: true
+
+    - name: setenforce 0 
+      selinux:
+        state: disabled
+
+    - name: copy static.key
+      template:
+        src: static.key
+        dest: /etc/openvpn/static.key
+        owner: root
+        group: openvpn
+        mode: 0640
+
+    - debug:
+        msg: "System {{ inventory_hostname }}"
+
+    - name: copy server.conf
+      template:
+        src: "{{inventory_hostname}}.conf" 
+        dest: /etc/openvpn/server.conf
+        owner: root
+        group: openvpn
+        mode: 0640
+
+    - name: copy openvpn.service
+      template:
+        src: openvpn.service
+        dest: /etc/systemd/system/openvpn@.service
+        owner: root
+        group: root
+        mode: 0640
+      notify:
+        - restart ovpn
+
+  handlers:
+    - name: restart ovpn
+      service:
+        name: openvpn@server
+        state: restarted
+        enabled: true
+

@@ -1,0 +1,47 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+MACHINES = {
+  :server => {
+        :box_name => "centos/stream8",
+	:vagrant_ip => "192.168.56.10",
+	:vm_ip => "192.168.10.10"
+  },
+  :client => {
+        :box_name => "centos/stream8", 
+        :vagrant_ip => "192.168.56.20",
+        :vm_ip => "192.168.10.20"
+  }
+}
+
+Vagrant.configure(2) do |config|
+  MACHINES.each do |boxname, boxconfig|
+     config.vbguest.auto_update = false if Vagrant.has_plugin?('vagrant-vbguest')
+     config.vm.provider :virtualbox do |v|
+         v.memory = 1024
+         v.cpus = 2
+     end
+
+     config.vm.define boxname do |box|
+	box.vm.box = boxconfig[:box_name]
+	box.vm.host_name = boxname.to_s 
+	box.vm.network "private_network", ip: boxconfig[:vagrant_ip]
+	config.vm.network "private_network", ip: boxconfig[:vm_ip], virtualbox__intnet: "net_vpn"
+
+	config.vm.provision "shell", inline: <<-SHELL
+            mkdir -p ~root/.ssh; cp ~vagrant/.ssh/auth* ~root/.ssh
+            sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+            systemctl restart sshd
+            setenforce 0
+            sed -i "s/SELINUX=enforcing/SELINUX=disabled/" /etc/selinux/config
+        SHELL
+     end
+  end
+
+  config.vm.provision "ansible" do |ansible|
+    ansible.playbook = "provisioning/provision.yml"
+    ansible.inventory_path = "provisioning/hosts"
+    ansible.host_key_checking = "false"
+    ansible.limit = "all"
+  end
+end
