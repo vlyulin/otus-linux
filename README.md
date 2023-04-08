@@ -23,4 +23,5 @@
 
 * [ДЗ: Сценарии iptables](Lesson20/README.md)
 * [ДЗ: OSPF](Lesson21/README.md)
+* [ДЗ: VPN](Lesson22/README.md)
 

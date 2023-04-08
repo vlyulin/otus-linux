@@ -8,27 +8,11 @@
     - defaults/main.yml
 
   tasks:
-  # - name: dnf upgrade libmodulemd
-  #    shell: 
-  #      "dnf upgrade -y libmodulemd"
-  #    register: os_info
-
-  #  - debug:
-  #      msg: ""
 
     - name: Install EPEL Repo package from standart repo
       yum:
         name: epel-release
         state: present
-
-  #   - name: Set timezone to Europe/Moscow
-  #    timezone:
-  #      name: Europe/Moscow
-
-  #  - name: Restart chronyd
-  #    service:
-  #      name: chronyd
-  #      state: restarted
 
     - name: install soft
       yum:
@@ -41,10 +25,6 @@
           - iperf3
         state: present
         update_cache: true
-
-    - name: setenforce 0 
-      selinux:
-        state: disabled
 
     - name: copy static.key
       template:

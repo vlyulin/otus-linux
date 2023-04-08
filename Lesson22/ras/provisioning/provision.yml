@@ -1,0 +1,108 @@
+---
+- name: VPN
+  hosts: all
+  become: true
+  become_user: root
+  gather_facts: no
+
+  tasks:
+    - name: Install EPEL Repo package from standart repo
+      yum:
+        name: epel-release
+        state: present
+
+    - name: install soft
+      yum:
+        name:
+          - vim
+          - traceroute
+          - tcpdump
+          - net-tools
+          - openvpn
+          - easy-rsa
+        state: present
+
+    - name: copy server files 
+      block:
+        - name: copy server security files
+          template:
+            src: "{{ item }}"
+            dest: /etc/openvpn/
+            owner: root
+            group: root
+            mode: 0600
+          loop:
+            - ca.crt
+            - ca.key
+            - server.key
+            - server.crt
+            - dh.pem
+
+        - name: copy server.conf
+          template:
+            src: server.conf
+            dest: /etc/openvpn/server.conf
+            owner: root
+            group: root
+            mode: 0644
+
+        - name: copy client file
+          template:
+            src: client
+            dest: /etc/openvpn/client/
+            owner: root
+            group: root
+            mode: 0644
+
+        - name: copy openvpn.service
+          template:
+            src: openvpn.service
+            dest: /etc/systemd/system/openvpn@.service
+            owner: root
+            group: root
+            mode: 0640
+          notify:
+            - restart ovpn_server
+      when: inventory_hostname == "serverras"
+
+    - name: copy client files
+      block:
+        - name: copy client secret files
+          template:
+            src: "{{ item }}"
+            dest: /etc/openvpn/
+            owner: root
+            group: root
+            mode: 0600
+          loop:
+            - ca.crt
+            - client.key
+            - client.crt
+            - client.conf
+      
+        - name: copy openvpn.service
+          template:
+            src: openvpn.service
+            dest: /etc/systemd/system/openvpn@.service
+            owner: root
+            group: root
+            mode: 0640
+          notify:
+            - restart ovpn_client
+
+      when: inventory_hostname == "clientras"
+
+  handlers:
+    - name: restart ovpn_server
+      service:
+        name: openvpn@server
+        state: restarted
+        enabled: true
+
+    - name: restart ovpn_client
+      service:
+        name: openvpn@client
+        state: restarted
+        enabled: true
+
+
