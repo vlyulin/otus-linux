@@ -1,0 +1,28 @@
+# Настройка маршрутизации транзитных пакетов для роутеров
+- name: Set all
+  hosts: all
+  become: true
+  become_user: root
+
+  tasks:
+  - name: Install EPEL Repo package from standart repo
+    yum:
+      name: epel-release
+      state: present
+   
+  - name: Set timezone to Europe/Moscow
+    timezone:
+      name: Europe/Moscow
+
+  - name: Restart chronyd
+    service:
+      name: chronyd
+      state: restarted
+
+  - name: install soft
+    yum:
+      name:
+        - vim
+      state: present
+
+

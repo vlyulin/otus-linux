@@ -1,0 +1,61 @@
+# Описание параметров ВМ
+MACHINES = {
+  :"web-server" => {
+              # VM box
+              :box_name => "centos/7",
+              # Количество ядер CPU
+              :cpus => 2,
+              # Указываем количество ОЗУ (В Мегабайтах)
+              :memory => 1024,
+              # Указываем IP-адрес для ВМ
+              :ip => "192.168.56.10",
+            },
+  :"log-server" => {
+	      # VM box
+              :box_name => "centos/7",
+              # Количество ядер CPU
+              :cpus => 2,
+              # Указываем количество ОЗУ (В Мегабайтах)
+              :memory => 1024,
+              # Указываем IP-адрес для ВМ
+              :ip => "192.168.56.20",
+            }
+}
+
+Vagrant.configure("2") do |config|
+
+  MACHINES.each do |boxname, boxconfig|
+
+    config.vbguest.auto_update = false if Vagrant.has_plugin?('vagrant-vbguest')
+    # Отключаем сетевую папку
+    # config.vm.synced_folder ".", "/vagrant", disabled: true
+
+    config.vm.network "private_network", ip: boxconfig[:ip]
+
+    config.vm.define boxname do |box|
+      box.vm.box = boxconfig[:box_name]
+      box.vm.host_name = boxname.to_s
+      box.vm.provider "virtualbox" do |v|
+        v.memory = boxconfig[:memory]
+        v.cpus = boxconfig[:cpus]
+      end
+      box.vm.provision "shell", run: "always", inline: <<-SHELL
+          mkdir -p ~root/.ssh; cp ~vagrant/.ssh/auth* ~root/.ssh
+	  # Разрешаем подключение пользователей по SSH с использованием пароля
+          sed -i 's/^PasswordAuthentication.*$/PasswordAuthentication yes/' /etc/ssh/sshd_config
+          # Перезапуск службы SSHD
+          systemctl restart sshd.service
+      SHELL
+
+      if boxname.to_s == "log-server"
+            config.vm.provision "ansible" do |ansible|
+              ansible.playbook = "provisioning/provision.yml"
+              ansible.inventory_path = "provisioning/hosts"
+              ansible.host_key_checking = "false"
+              ansible.limit = "all"
+            end
+      end
+    end
+  end
+end
+

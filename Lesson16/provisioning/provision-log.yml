@@ -1,0 +1,11 @@
+# Настройка log сервера 
+- name: Set log-server
+  hosts: log-server
+  become: true
+  become_user: root
+
+  tasks:
+  ## Подключаем файл конфигурации rsyslog
+  - name: Import configure file rsyslog
+    import_tasks: rsyslog-configure.yml
+
