@@ -1,14 +1,78 @@
 # Настройка web сервера 
-- name: Set web-server
-  hosts: web-server
+- name: Set webserver
+  hosts: webserver
   become: true
   become_user: root
 
   tasks:
+  - include_vars: defaults/main.yml
+
   - name: Install nginx for Centos
-    yum:
+    yum: 
+      name: nginx 
+      state: latest 
+      update_cache: true
+
+  - name: Template for NGINX
+    template:
+      src: nginx.j2
+      dest: /etc/nginx/nginx.conf
+
+  # Шаблон конфигурации виртуального домена      
+  - name: Templte for domain
+    template:
+      src: mydomain.j2
+      dest: /etc/nginx/conf.d/mydomain.conf
+
+  # Создание директории виртуального домена
+  - name: Create folder for domain site
+    file:
+      path: /var/www/{{ virtual_domain }}
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+      mode: '0755'
+      state: directory
+
+  # Копирование файла в дерикторию сайта
+  - name: Copy file otus-lesson16.edu
+    copy:
+      src: templates/index.html
+      dest: /var/www/{{ virtual_domain }}
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+      mode: '0644'
+
+  - name: nginx restart service
+    systemd:
       name: nginx
-      state: started
+      state: restarted
+      daemon_reload: yes
 
+  - name: Install tools audispd-plugins
+    yum:
+      name: audispd-plugins
+      state: latest
 
+  - name: Configure audit.rules
+    template:
+      src: audit_rules.j2
+      dest: /etc/audit/rules.d/audit.rules
+  
+  - name: web configure-auditd-conf
+    template:
+      src: web-auditd-conf.j2
+      dest: /etc/audit/auditd.conf
 
+  - name: web configure-au-remote-conf.yml
+    template:
+      src: web-au-remote-conf.j2
+      dest: /etc/audisp/plugins.d/au-remote.conf
+
+  - name: configure-web-audisp-remote-conf
+    template:
+      src: web-audisp-remote-conf.j2
+      dest: /etc/audisp/audisp-remote.conf
+
+  - name: restart-audit-rule
+    command: service auditd restart
+  

@@ -1,11 +1,28 @@
+---
 # Настройка log сервера 
-- name: Set log-server
-  hosts: log-server
+- name: Set logserver
+  hosts: logserver
   become: true
   become_user: root
 
   tasks:
-  ## Подключаем файл конфигурации rsyslog
-  - name: Import configure file rsyslog
-    import_tasks: rsyslog-configure.yml
+  - include_vars: defaults/main.yml
 
+  ## Подключаем файл конфигурации rsyslog
+  - name: configure rsyslog
+    template:
+      src: rsyslog-conf.j2
+      dest: /etc/rsyslog.conf
+
+  - name: restart-rsyslog
+    systemd:
+      name: rsyslog
+      state: restarted
+
+  - name: configure-log-auditd-conf
+    template:
+      src: log-auditd-conf.j2
+      dest: /etc/audit/auditd.conf
+
+  - name: restart-audit-rule
+    command: service auditd restart
