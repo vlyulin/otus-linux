@@ -54,5 +54,7 @@ ipa user-add otus-user --first=Otus --last=User --password
 
 Созданный пользователь otus-user в web-интерфейсе ipa:
 
+![otus-user-in-ipa1](imgs/otus-user-in-ipa1.png)
+
 ![otus-user-in-ipa](imgs/otus-user-in-ipa.png)
 
