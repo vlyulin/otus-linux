@@ -1,0 +1,48 @@
+---
+# Общая настройка всех ВМ
+- name: Set all
+  hosts: all
+  become: true
+  become_user: root
+
+  tasks:
+  - name: Install EPEL Repo package from standart repo
+    yum:
+      name: epel-release
+      state: latest
+   
+  - name: Set timezone to Europe/Moscow
+    timezone:
+      name: Europe/Moscow
+
+  - name: Restart chronyd
+    service:
+      name: chronyd
+      state: restarted
+
+  - name: install soft
+    yum:
+      name:
+        - vim
+      state: present
+
+  - name: Stop and disable firewalld.
+    service:
+      name: firewalld
+      state: stopped
+      enabled: False
+
+  - name: Disable SELinux
+    selinux:
+      state: disabled
+
+  - name: DNS-сервер
+    lineinfile:
+      dest: /etc/hosts
+      line: "192.168.57.10 ipa.otus.lan ipa"
+      state: present
+      owner: root
+      group: root
+      mode: 0644
+
+

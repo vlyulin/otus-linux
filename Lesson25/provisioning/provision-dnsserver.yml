@@ -1,0 +1,51 @@
+---
+# Настройка dns скрвера
+- name: Setup dns-server
+  hosts: ipa.otus.lan 
+  become: true
+  become_user: root
+
+  tasks:
+  
+  # - name: fix repo
+  #  shell: "sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*"
+
+  # - name: fix repo 2
+  #  shell: "sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*"
+
+  # - name: fix yum
+  #  shell: "dnf update libmodulemd"
+
+  # - name: Install system updates for centos systems
+  #  yum:
+  #    name: '*'
+  #    state: latest
+  #    update_cache: yes
+
+  - name: ipa-server initial
+    shell: "dnf distro-sync"
+
+  - name: install soft
+    yum:
+      name:
+        - "@idm:DL1"
+        - ipa-server
+        - ipa-server-dns
+        - bind-dyndb-ldap
+      state: present
+      disable_gpg_check: yes
+
+  - name: Configure ipa-server
+    command:
+      ipa-server-install -U \
+      --hostname="ipa.otus.lan" \
+      -n "otus.lan" \
+      -r "OTUS.LAN" \
+      -p p1234567 \
+      -a p1234567 \
+      --ip-address="192.168.57.10" \
+      --mkhomedir
+      --setup-dns \
+      --auto-forwarders \
+      --no-reverse
+

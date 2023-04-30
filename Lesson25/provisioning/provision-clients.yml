@@ -1,0 +1,25 @@
+---
+# Настройка клиентов 
+- name: Setup clients
+  hosts: clients 
+  become: true
+  become_user: root
+
+  tasks:
+  # - name: fix dnf
+  #  shell: "dnf update rpm"
+
+  # - name: fix dnf2
+  #  shell: "dnf update"
+
+  - name: install module ipa-client
+    yum:
+      name:
+        - freeipa-client
+      state: present
+      update_cache: true
+
+  # Запуск скрипта добавления хоста к серверу
+  - name: add host to ipa-server
+    shell: echo -e "yes\nyes" | ipa-client-install --mkhomedir --domain=OTUS.LAN --server=ipa.otus.lan --no-ntp -p admin -w p1234567
+

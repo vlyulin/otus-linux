@@ -26,4 +26,4 @@
 * [ДЗ: OSPF](Lesson21/README.md)
 * [ДЗ: VPN](Lesson22/README.md)
 * [ДЗ: Настраиваем split-dns](Lesson23/README.md)
-
+* [ДЗ: LDAP](Lesson25/README.md)
