@@ -1,0 +1,29 @@
+---
+- name: Client configuration
+  hosts: client
+  become: true
+  tasks:
+
+    - name: Инициализируем репозиторий borg на backup сервере с client
+      shell: 'borg init --encryption=repokey borg@192.168.57.160:/var/backup/'
+      environment:
+        BORG_NEW_PASSPHRASE: "p1234567"
+
+    # - name: Запускаем для проверки создания бэкапа
+    #  shell: 'borg create --stats --list borg@192.168.57.160:/var/backup/::"etc-{now:%Y-%m-%d_%H:%M:%S}" /etc'
+
+    - name: Автоматизируем создание бэкапов с помощью systemd. Создаем сервис и таймер в каталоге /etc/systemd/system/
+      copy:
+        src: '{{ item }}'
+        dest: /etc/systemd/system/
+      loop:
+        - 'borg-backup.service'
+        - 'borg-backup.timer'
+
+    - name: Включаем и запускаем службу таймера 
+      systemd:
+        name: borg-backup.timer
+        enabled: yes
+        state: started
+        daemon_reload: yes
+

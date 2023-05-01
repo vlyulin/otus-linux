@@ -19,7 +19,7 @@
 * [ДЗ: Настройка мониторинга](Lesson14/README.md)
 * [ДЗ: PAM](Lesson15/README.md)
 * [ДЗ: Настраиваем центральный сервер для сбора логов](Lesson16/README.md)
-
+* [ДЗ: Настраиваем бэкапы](Lesson17/README.md)
 * [ДЗ: Разворачиваем сетевую лобораторию](Lesson18/README.md)
 * [ДЗ: Настройка PXE сервера для автоматической установки](Lesson19/README.md)
 * [ДЗ: Сценарии iptables](Lesson20/README.md)

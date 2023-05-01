@@ -1,0 +1,63 @@
+---
+# Настройка backup-server
+
+- name: Set backup server
+  hosts: server
+  become: true
+  become_user: root
+
+  tasks:
+  - name: find out a backup disc name
+    shell: if [[ $(lsblk | grep sda1) ]]; then echo 'sdb'; else echo 'sda'; fi
+    register: diskname
+
+  - name: Create backup partition
+    parted:
+      device: '/dev/{{ diskname.stdout }}'
+      number: 1
+      state: present
+
+  - name: Make filesystem
+    filesystem: 
+      fstype: ext4
+      dev: '/dev/{{ diskname.stdout }}1'
+
+  - name: Create backup dir
+    file:
+      path: /var/backup
+      state: directory
+
+  - name: Mount backup disk
+    mount:
+      path: /var/backup
+      src: '/dev/{{ diskname.stdout }}1'
+      state: mounted
+      fstype: ext4
+
+  - name: Add user borg
+    user:
+      name: borg
+
+  - name: Change ownership
+    file:
+      name: /var/backup
+      owner: borg
+      group: borg
+
+  - name: Clean /var/backup, иначе stderr There is already something at /var/backup.
+    shell: rm -rf /var/backup/*
+
+  - name: Create /home/borg/.ssh/
+    file:
+      path: /home/borg/.ssh
+      mode: u=rwx,g-rwx,o-rwx
+      state: directory
+      owner: borg
+      group: borg
+
+  - name: На сервер backup создаем ~/.ssh/authorized_keys в каталоге /home/borg
+    authorized_key:
+      user: borg
+      state: present
+      key: "{{ lookup('file', '/tmp/id_rsa.pub/client/root/.ssh/id_rsa.pub') }}"
+

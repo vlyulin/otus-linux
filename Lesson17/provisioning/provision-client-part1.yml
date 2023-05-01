@@ -1,0 +1,28 @@
+---
+- name: Client configuration
+  hosts: client
+  become: true
+  tasks:
+
+    - name: create dir
+      file:
+        path: /root/.ssh
+        mode: u=rwx,g-rwx,o-rwx
+        state: directory
+        owner: root
+        group: root
+
+    - name: Create ssh keys
+      openssh_keypair:
+        path: /root/.ssh/id_rsa
+        size: 2048
+
+    - name: Fetch public key
+      fetch:
+        src: /root/.ssh/id_rsa.pub
+        dest: /tmp/id_rsa.pub
+
+    - name: Tell about backup server
+      shell: 'ssh-keyscan -H 192.168.57.160 >> ~/.ssh/known_hosts'
+
+

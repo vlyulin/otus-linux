@@ -1,0 +1,90 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  
+  config.vbguest.auto_update = false if Vagrant.has_plugin?('vagrant-vbguest')
+
+  config.vm.define "backup" do |backup|
+
+    backup.vm.box = "centos/7"
+    backup.vm.network "private_network", ip: "192.168.57.160"
+    backup.vm.hostname = "backup"
+    
+    backup_hdd = './data/backups.vdi'
+
+    backup.vm.provider :virtualbox do |vb|
+      vb.customize ["modifyvm", :id, "--memory", "512"]
+      vb.customize ["modifyvm", :id, "--cpus", "2"]
+
+      config.vm.provision "shell", inline: <<-SHELL
+        mkdir -p ~root/.ssh; cp ~vagrant/.ssh/auth* ~root/.ssh
+        sed -i 's/^PasswordAuthentication.*$/PasswordAuthentication yes/' /etc/ssh/sshd_config
+        systemctl restart sshd
+      SHELL
+
+      needsController = false
+      unless File.exist?(backup_hdd)
+        vb.customize ['createhd', '--filename', backup_hdd, '--variant', 'Fixed', '--size', 512]
+        needsController =  true
+      end
+
+      if needsController == true
+        vb.customize ["storagectl", :id, "--name", "SATA", "--add", "sata" ]
+        vb.customize ['storageattach', :id, '--storagectl', 'SATA', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', backup_hdd]
+      end
+    end
+
+  end
+
+  config.vm.define "client" do |client|
+
+    client.vm.box = "centos/7"
+    client.vm.network "private_network", ip: "192.168.57.150"
+    client.vm.hostname = "client"
+   
+    config.vm.provision "shell", inline: <<-SHELL
+      mkdir -p ~root/.ssh; cp ~vagrant/.ssh/auth* ~root/.ssh
+      sed -i 's/^PasswordAuthentication.*$/PasswordAuthentication yes/' /etc/ssh/sshd_config
+      systemctl restart sshd
+    SHELL
+
+    client.vm.provider :virtualbox do |vb|
+      vb.customize ["modifyvm", :id, "--memory", "512"]
+      vb.customize ["modifyvm", :id, "--cpus", "2"]
+    end
+  end
+
+  config.vm.provision "ansible" do |ansible|
+      ansible.playbook = "provisioning/provision.yml"
+      ansible.inventory_path = "provisioning/hosts"
+      ansible.host_key_checking = "false"
+      ansible.limit = "all"
+      ansible.verbose = "true"
+  end
+
+  config.vm.provision "ansible" do |ansible|
+      ansible.playbook = "provisioning/provision-client-part1.yml"
+      ansible.inventory_path = "provisioning/hosts"
+      ansible.host_key_checking = "false"
+      ansible.limit = "client"
+      ansible.verbose = "true"
+  end
+
+  config.vm.provision "ansible" do |ansible|
+      ansible.playbook = "provisioning/provision-server.yml"
+      ansible.inventory_path = "provisioning/hosts"
+      ansible.host_key_checking = "false"
+      ansible.limit = "server"
+      ansible.verbose = "true"
+  end
+
+  config.vm.provision "ansible" do |ansible|
+      ansible.playbook = "provisioning/provision-client-part2.yml"
+      ansible.inventory_path = "provisioning/hosts"
+      ansible.host_key_checking = "false"
+      ansible.limit = "client"
+      ansible.verbose = "true"
+  end
+
+end
