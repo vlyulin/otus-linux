@@ -58,6 +58,7 @@ ExecStart=/bin/borg create --stats ${REPO}::etc-{now:%%Y-%%m-%%d_%%H:%%M:%%S} ${
 4. глубина бекапа должна быть год, хранить можно по последней копии на конец месяца, кроме последних трех. Последние три месяца должны содержать копии на каждый день. Т.е. должна быть правильно настроена политика удаления старых бэкапов;
 
 См. файл: provisioning/files/borg-backup.sevice
+
 ```
 ExecStart=/bin/borg prune --keep-daily 90 --keep-monthly 12 --keep-yearly 1 ${REPO}
 ```
@@ -65,12 +66,14 @@ ExecStart=/bin/borg prune --keep-daily 90 --keep-monthly 12 --keep-yearly 1 ${RE
 5. резервная копия снимается каждые 5 минут. Такой частый запуск в целях демонстрации;
 
 См. файл: provisioning/files/borg-backup.timer
+
 ```
 [Timer]
 OnUnitActiveSec=5min
 ```
 
 Статус таймера:
+
 ```
 systemctl list-timers
 ```
@@ -88,11 +91,13 @@ borg list borg@192.168.57.160:/var/backup/
 ![borg-list](imgs/borg-list.png)
 
 Содержимое бэкапа:
+
 ![backup-contents](imgs/backup-contents.png)
 
 7. настроено логирование процесса бекапа. Для упрощения можно весь вывод перенаправлять в logger с соответствующим тегом. 
 
 Настройка:
+
 См. файл: provisioning/files/borg-backup.service
 
 ```
