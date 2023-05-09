@@ -1,6 +1,4 @@
-[server]
-ipa.otus.lan ansible_host=192.168.57.10 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/ipa.otus.lan/virtualbox/private_key 
-[clients]
-client1.otus.lan ansible_host=192.168.57.11 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/client1.otus.lan/virtualbox/private_key
-client2.otus.lan ansible_host=192.168.57.12 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/client2.otus.lan/virtualbox/private_key
+[servers]
+master ansible_host=192.168.57.150 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/master/virtualbox/private_key 
+slave ansible_host=192.168.57.151 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/slave/virtualbox/private_key
 

@@ -1,0 +1,7 @@
+#!/usr/bin/env expect
+set mpass [lindex $argv 0]
+spawn mysql_config_editor set --skip-warn --login-path=local --user=root --password
+expect "Enter password: "
+send "$mpass\r"
+expect eof
+

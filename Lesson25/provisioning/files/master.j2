@@ -1,0 +1,6 @@
+CREATE DATABASE IF NOT EXISTS bet;
+USE bet;
+SOURCE /tmp/bet.dmp
+CREATE USER IF NOT EXISTS 'repl'@'%' IDENTIFIED BY '{{ rep_password }}';
+GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%' IDENTIFIED BY '{{ rep_password }}';
+

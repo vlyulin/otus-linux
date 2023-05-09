@@ -1,0 +1,74 @@
+---
+# Настройка ВМ master
+- name: Setup master
+  hosts: master
+  become: true
+  become_user: root
+  gather_facts: no
+  vars_files:
+    - defaults/vars.yml
+  tasks:
+
+  - name: copy conf.d on master
+    copy: 
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+    with_items:    
+        - { src: conf/conf.d/01-base-master.cnf, dest: /etc/my.cnf.d/01-base-master.cnf }
+        - { src: conf/conf.d/02-max-connections.cnf, dest: /etc/my.cnf.d/02-max-connections.cnf }
+        - { src: conf/conf.d/03-performance.cnf, dest: /etc/my.cnf.d/03-performance.cnf }
+        - { src: conf/conf.d/04-slow-query.cnf, dest: /etc/my.cnf.d/04-slow-query.cnf }
+        - { src: conf/conf.d/05-binlog-master.cnf, dest: /etc/my.cnf.d/05-binlog-master.cnf }
+        - { src: change-pswd.sh, dest: /tmp/change-pswd.sh }
+        - { src: login-path-creation.exp, dest: /tmp/login-path-creation.exp }
+        - { src: bet.dmp, dest: /tmp/bet.dmp }
+
+  - name: Template for master.sql
+    template:
+      src: files/master.j2
+      dest: /tmp/master.sql
+
+  - name: Change mysql password.
+    command: sh /tmp/change-pswd.sh {{ mysqlpassword }}
+    ignore_errors: true
+
+  - name: Enable services mysql.
+    service:
+      name: mysql
+      enabled: true
+      state: restarted
+
+  - name: Login-path creation.
+    command:  expect /tmp/login-path-creation.exp {{ mysqlpassword }}
+    ignore_errors: true
+
+  - name: Fix "You must reset you password..."
+    command: mysql --login-path=local --connect-expired-password -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '{{ mysqlpassword }}';"
+    ignore_errors: true
+
+  - name: MySql database creation.
+    shell: mysql --login-path=local < /tmp/master.sql
+
+  - name: Master database dump creation.
+    shell: "mysqldump --login-path=local --all-databases --triggers --routines --events --master-data --ignore-table=bet.events_on_demand --ignore-table=bet.v_same_event > /tmp/master-database.sql"
+    ignore_errors: true
+
+  - name: Change file ownership, group and permissions
+    file:
+      path: /tmp/master-database.sql
+      owner: vagrant
+      group: vagrant
+      mode: '0644'
+
+  - name: Clean tmp
+    file:
+      path: '{{ item }}'
+      state: absent
+    with_items:
+      - bet.dmp
+      - change-pswd.sh
+      - login-path-creation.exp
+      - master.sql
+      - percona-release-latest.noarch.rpm
+
+

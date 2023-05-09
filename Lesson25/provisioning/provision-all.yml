@@ -1,0 +1,83 @@
+---
+# Общая настройка всех ВМ
+- name: Set all
+  hosts: all
+  become: true
+  become_user: root
+  vars_files:
+    - defaults/vars.yml
+  tasks:
+   
+  - name: Set timezone to Europe/Moscow
+    timezone:
+      name: Europe/Moscow
+
+  - name: Restart chronyd
+    service:
+      name: chronyd
+      state: restarted
+
+  - name: Stop and disable firewalld.
+    service:
+      name: firewalld
+      state: stopped
+      enabled: False
+
+  - name: Disable SELinux
+    selinux:
+      state: disabled
+
+  - yum:
+      name: "https://repo.percona.com/yum/percona-release-latest.noarch.rpm"
+      state: present
+
+  - get_url:
+      url: "https://repo.percona.com/yum/percona-release-latest.noarch.rpm"
+      dest: /tmp/percona-release-latest.noarch.rpm
+
+  - name: Install package.
+    yum:
+      name: /tmp/percona-release-latest.noarch.rpm
+      state: present
+
+  - name: setup percona repositories to percona server 5.7
+    shell: percona-release setup ps57
+
+  - name: install soft
+    yum:
+      name:
+        - vim
+        - Percona-Server-server-57
+        - expect
+      state: present
+
+# https://www.middlewareinventory.com/blog/ansible-ssh-key-exchange/
+# Для slave нужен pub ключ сервера master, чтобы иметь возможность копирования 
+# дампа базы данных с master на slave задачей "name: Transfer database dump from master to slave" (synchronize), см.ниже. 
+- name: Exchange Keys between servers
+  become: yes
+  become_user: vagrant
+  hosts: servers
+  tasks:
+    - name: SSH KeyGen command
+      tags: run
+      shell: > 
+        ssh-keygen -q -b 2048 -t rsa -N "" -C "creating SSH" -f ~/.ssh/id_rsa
+        creates="~/.ssh/id_rsa"
+    - name: Fetch the keyfile from one server to another
+      tags: run
+      fetch: 
+        src: "~/.ssh/id_rsa.pub"
+        dest: "buffer/{{ansible_hostname}}-id_rsa.pub"
+        flat: yes
+    - name: Copy the key add to authorized_keys using Ansible module
+      tags: run
+      authorized_key:
+        user: vagrant
+        state: present
+        key: "{{ lookup('file','buffer/{{item.dest}}-id_rsa.pub')}}"
+      when: "{{ item.dest != ansible_hostname }}"
+      with_items: 
+        - { dest: "{{groups['servers'][1]}}"}
+        - { dest: "{{groups['servers'][0]}}"}
+
