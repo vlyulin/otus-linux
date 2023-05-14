@@ -1,0 +1,104 @@
+---
+# tasks file for postgres_replication
+
+# Установка python-пакетов для модулей psql
+- name: install base tools
+  become: yes
+  dnf:
+    name:
+      - python3-pexpect.noarch
+      - python3-psycopg2
+      - bash-completion
+      - wget
+    state: present
+    update_cache: true
+  tags: py-install
+  when: (ansible_hostname == "master") or (ansible_hostname == "slave")
+
+# CREATE USER replicator WITH REPLICATION Encrypted PASSWORD 'Otus2022!';
+- name: Create replicator user on master
+  become_user: postgres
+  postgresql_user:
+    name: replication
+    password: '{{ replicator_password }}'
+    role_attr_flags: REPLICATION 
+  ignore_errors: true
+  when: (ansible_hostname == "master")
+
+# Остановка postgresql-14 на хосте slave
+- name: stop postgresql-server on slave
+  service:
+    name: postgresql-14
+    state: stopped
+  when: (ansible_hostname == "slave")
+
+# Копирование конфигурационного файла postgresql.conf на master
+- name: copy postgresql.conf to master
+  template:
+    src: postgresql.conf.j2
+    dest: /var/lib/pgsql/14/data/postgresql.conf
+    owner: postgres
+    group: postgres
+    mode: '0600'
+  when: (ansible_hostname == "master")
+
+# Копирование конфигурационного файла pg_hba.conf на master
+- name: copy pg_hba.conf to master
+  template:
+    src: pg_hba.conf.j2
+    dest: /var/lib/pgsql/14/data/pg_hba.conf
+    owner: postgres
+    group: postgres
+    mode: '0600'
+  when: (ansible_hostname == "master")
+
+# Перезапуск службы postgresql-14
+- name: restart postgresql-server on master
+  service:
+    name: postgresql-14
+    state: restarted
+  when: (ansible_hostname == "master")
+
+# Удаление содержимого каталога /var/lib/pgsql/14/data/ на slave
+- name: Remove files from data catalog on slave
+  file:
+    path: /var/lib/pgsql/14/data/
+    state: absent
+  when: (ansible_hostname == "slave")
+
+# Копирование данных с master на slave
+- name: copy files from master to slave
+  become_user: postgres
+  expect:
+    command: 'pg_basebackup -h {{ master_ip }} -U  replication -p 5432 -D /var/lib/pgsql/14/data/ -R -P'
+    responses:
+      '.*Password*': "{{ replicator_password }}"
+  when: (ansible_hostname == "slave")
+
+# Копирование конфигурационного файла postgresql.conf на slave
+- name: copy postgresql.conf to slave
+  template:
+    src: postgresql.conf.j2
+    dest: /var/lib/pgsql/14/data/postgresql.conf
+    owner: postgres
+    group: postgres
+    mode: '0600'
+  when: (ansible_hostname == "slave")
+
+# Копирувание конфигурационного файла pg_hba.conf на slave
+- name: copy pg_hba.conf to slave
+  template:
+    src: pg_hba.conf.j2
+    dest: /var/lib/pgsql/14/data/pg_hba.conf
+    owner: postgres
+    group: postgres
+    mode: '0600'
+  when: (ansible_hostname == "slave")
+
+# Запус службы postgresql-14 на хосте slave
+- name: start postgresql-server on slave
+  service:
+    name: postgresql-14
+    state: started
+  when: (ansible_hostname == "slave")
+

@@ -1,0 +1,55 @@
+---
+# Общая настройка всех ВМ
+- name: Set all
+  hosts: all
+  become: true
+  become_user: root
+  tasks:
+   
+  - name: Set timezone to Europe/Moscow
+    timezone:
+      name: Europe/Moscow
+
+  - name: Restart chronyd
+    service:
+      name: chronyd
+      state: restarted
+
+  - name: Stop and disable firewalld.
+    service:
+      name: firewalld
+      state: stopped
+      enabled: False
+
+  # Отключаем SElinux
+  - name: Disable SELinux
+    selinux:
+      state: disabled
+
+  # Отключаем SElinux после перезагрузки
+  - name: Ensure SELinux is set to disable mode
+    lineinfile:
+      path: /etc/selinux/config
+      regexp: '^SELINUX='
+      line: SELINUX=disabled
+
+  - name: install soft
+    yum:
+      name:
+        - vim
+        - telnet
+      state: present
+
+- name: install postgres 14 and set up replication
+  hosts: master, slave
+  become: yes
+  roles:
+    - install_postgres
+    - postgres_replication
+
+- name: set up backup
+  hosts: all
+  become: yes
+  roles:
+    - install_barman
+

@@ -28,4 +28,4 @@
 * [ДЗ: Настраиваем split-dns](Lesson23/README.md)
 * [ДЗ: LDAP](Lesson24/README.md)
 * [ДЗ: Репликация mysql](Lesson25/README.md)
-
+* [ДЗ: Репликация Postgres](Lesson26/README.md)

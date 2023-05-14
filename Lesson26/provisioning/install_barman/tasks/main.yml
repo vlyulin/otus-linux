@@ -1,0 +1,204 @@
+---
+# tasks file for install_barman
+
+# Установка необходимых пакетов для работы с postgres и пользователями
+- name: install base tools
+  become: yes
+  dnf:
+    name:
+      - python3-pexpect.noarch
+      - python3-psycopg2
+      - bash-completion
+      - wget
+    state: present
+    update_cache: true
+  tags: py-install
+  when: (ansible_hostname == "barman")
+
+# Добавляем postgres репозиторий на хост barman
+- name: install repo
+  dnf:
+    name: 'https://download.postgresql.org/pub/repos/yum/reporpms/EL-8-x86_64/pgdg-redhat-repo-latest.noarch.rpm'
+    state: present
+  when: (ansible_hostname == "barman")
+
+#  Отключение старого postgres-модуля
+- name: disable old postgresql module
+  shell: dnf -qy module disable postgresql
+  when: (ansible_hostname == "barman")
+
+#  Установка EPEL-release
+- name: install epel-release
+  dnf:
+    name:
+      - epel-release
+    state: present
+    update_cache: true
+
+#  Установка пакетов barman и stgresql-client на сервер barman 
+- name: install barman and postgresql packages on barman
+  dnf:
+    name:
+      - barman
+      - barman-cli
+      - postgresql14
+    state: present
+    update_cache: true
+  when: (ansible_hostname == "barman")
+
+#  Установка пакетов barman-cli на серверах master и slave
+- name: install barman-cli and postgresql packages on nodes
+  dnf:
+    name:
+      - barman-cli
+    state: present
+    update_cache: true
+  when: (ansible_hostname != "barman")
+
+# Генерация SSH-ключа для пользователя postgres на хосте master
+- name: generate SSH key for postgres on master
+  user:
+    name: postgres
+    generate_ssh_key: yes
+    ssh_key_type: rsa
+    ssh_key_bits: 4096
+    force: no
+  when: (ansible_hostname == "master")
+
+# Генерация SSH-ключа для пользователя barman на хосте barman
+- name: generate SSH key for barman
+  user:
+    name: barman
+    uid: 994
+    shell: /bin/bash
+    generate_ssh_key: yes
+    ssh_key_type: rsa
+    ssh_key_bits: 4096
+    force: no
+  when: (ansible_hostname == "barman")
+
+- name: Fetch the keyfile from master
+  become: yes
+  become_user: postgres
+  fetch:
+    src: "/var/lib/pgsql/.ssh/id_rsa.pub"
+    dest: "buffer/{{ansible_hostname}}-id_rsa.pub"
+    flat: yes
+  when: (ansible_hostname == "master")
+
+- name: Fetch the keyfile from master и barman
+  become: yes
+  become_user: barman
+  fetch:
+    src: "/var/lib/barman/.ssh/id_rsa.pub"
+    dest: "buffer/{{ansible_hostname}}-id_rsa.pub"
+    flat: yes
+  when: (ansible_hostname == "barman")
+
+- name: Copy the key add to authorized_keys using Ansible module on master
+  authorized_key:
+    user: "postgres"
+    state: present
+    key: "{{ lookup('file','buffer/barman-id_rsa.pub')}}"
+  when: (ansible_hostname == "master")
+
+- name: Copy the key add to authorized_keys using Ansible module on barman
+  authorized_key:
+    user: "barman"
+    state: present
+    key: "{{ lookup('file','buffer/master-id_rsa.pub')}}"
+  when: (ansible_hostname == "barman")
+
+# CREATE USER barman SUPERUSER;
+- name: Create barman user in master database
+  become_user: postgres
+  postgresql_user:
+    name: barman
+    password: '{{ barman_user_password }}'
+    role_attr_flags: SUPERUSER
+  ignore_errors: true
+  when: (ansible_hostname == "master")
+
+# Добавлtение разрешения для поключения с хоста barman
+- name: Add permission for barman
+  lineinfile:
+    path: /var/lib/pgsql/14/data/pg_hba.conf
+    line: 'host    all   {{ barman_user }}    {{ barman_ip }}/32    scram-sha-256'
+  when: (ansible_hostname == "master") or
+        (ansible_hostname == "slave")
+
+# Добавление разрешения для подключения с хоста barman
+- name: Add permission for barman
+  lineinfile:
+    path: /var/lib/pgsql/14/data/pg_hba.conf
+    line: 'host    replication   {{ barman_user }}    {{ barman_ip }}/32    scram-sha-256'
+  when: (ansible_hostname == "master") or
+        (ansible_hostname == "slave")
+
+# Перезагрузка службы postgresql-server
+- name: restart postgresql-server on master
+  service:
+    name: postgresql-14
+    state: restarted
+  when: (ansible_hostname == "master")
+
+# Создание БД otus на master;
+- name: Create DB for backup on master
+  become_user: postgres
+  postgresql_db:
+    name: otus
+    encoding: UTF-8
+    template: template0
+    state: present
+  when: (ansible_hostname == "master")
+
+# Создание таблицы test1 в БД otus в БД на master;
+- name: Add tables to otus_backup on master db.
+  become_user: postgres
+  postgresql_table:
+    db: otus
+    name: test1
+    state: present
+  when: (ansible_hostname == "master")
+
+# Копирование файла .pgpass на сервер barman
+- name: copy .pgpass on VM barman
+  template:
+    src: .pgpass.j2
+    dest: /var/lib/barman/.pgpass
+    owner: barman
+    group: barman
+    mode: '0600'
+  when: (ansible_hostname == "barman")
+
+# Копируем файл barman.conf
+- name: copy barman.conf
+  template:
+    src: barman.conf.j2
+    dest: /etc/barman.conf 
+    owner: barman
+    group: barman
+    mode: '0755'
+  when: (ansible_hostname == "barman")
+
+# Копируем файл master.conf на barman
+- name: copy master.conf on VM barman
+  template:
+    src: master.conf.j2
+    dest: /etc/barman.d/master.conf
+    owner: barman
+    group: barman
+    mode: '0755'
+  when: (ansible_hostname == "barman")
+
+- name: barman switch-wal master
+  become_user: barman
+  shell: barman switch-wal master
+  when: (ansible_hostname == "barman")
+
+- name: barman cron
+  become_user: barman
+  shell: barman cron
+  when: (ansible_hostname == "barman")
+
+
