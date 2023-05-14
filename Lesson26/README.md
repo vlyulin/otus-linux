@@ -258,6 +258,6 @@ listen_addresses = 'localhost, 192.168.57.12'
 
 После чего стали реплицироваться новые базыданных созданные на master:
 
-[!slave-fix-replication](imgs/slave-fix-replication.png)
+![slave-fix-replication](imgs/slave-fix-replication.png)
 
 
