@@ -1,0 +1,18 @@
+[mons]
+mon1 ansible_host=192.168.57.10 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/mon1/virtualbox/private_key
+mon2 ansible_host=192.168.57.11 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/mon2/virtualbox/private_key
+mon3 ansible_host=192.168.57.12 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/mon3/virtualbox/private_key
+ 
+[osds]
+osds1 ansible_host=192.168.57.13 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/osds1/virtualbox/private_key
+osds2 ansible_host=192.168.57.14 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/osds2/virtualbox/private_key
+osds3 ansible_host=192.168.57.15 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/osds3/virtualbox/private_key
+ 
+[mgrs]
+mgrs1 ansible_host=192.168.57.10 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/mgrs1/virtualbox/private_key
+ 
+[grafana-server]
+grafana0 ansible_host=192.168.57.13 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/grafana0/virtualbox/private_key
+
+
+

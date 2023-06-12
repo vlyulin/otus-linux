@@ -1,0 +1,41 @@
+---
+# Общая настройка web серверов
+- name: Setup web-servers
+  hosts: webservers
+  become: true
+  become_user: root
+  vars:
+    server_name: "{{ ansible_all_ipv4_addresses | ipaddr('private') | first }}"
+    # "{{ ansible_default_ipv4.address }}"
+    app_root: app
+    document_root: /mnt/cephfs
+    project_path: /mnt/cephfs
+
+  tasks:   
+
+  - name: Install nginx
+    yum:
+      name: nginx
+      state: present
+    tags: nginx
+
+  - name: Apply Nginx template
+    template:
+      src: files/nginx.web1.conf.j2
+      dest: "/etc/nginx/conf.d/{{ app_root }}.conf"
+      # notify: Restart Nginx
+    when: inventory_hostname == "web1"
+
+  - name: Apply Nginx template
+    template:
+      src: files/nginx.web2.conf.j2
+      dest: "/etc/nginx/conf.d/{{ app_root }}.conf"
+      # notify: Restart Nginx
+    when: inventory_hostname == "web2"
+
+  - name: Start nginx
+    service:
+      name: nginx
+      state: started
+    tags: nginx
+    

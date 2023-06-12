@@ -1,0 +1,8 @@
+---
+# defaults file for install_barman
+master_ip: '192.168.56.31'
+master_user: 'postgres'
+barman_ip: '192.168.56.33'
+barman_user: 'barman'
+barman_user_password: 'Otus2022!'
+

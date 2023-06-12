@@ -1,0 +1,14 @@
+[mons]
+mon0
+
+[osds]
+osd0
+
+[grafana-server]
+mon0
+
+[mgrs]
+mon0
+
+[grafana-server]
+mon0

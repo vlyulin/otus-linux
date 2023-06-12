@@ -1,0 +1,45 @@
+CREATE SEQUENCE IF NOT EXISTS logid START 100;
+CREATE TABLE IF NOT EXISTS log (
+	id INTEGER DEFAULT NEXTVAL('logid'),
+	ts TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+	ipSrv VARCHAR(20),
+	ipClt VARCHAR(20),
+	data VARCHAR(255) 
+);
+
+CREATE SEQUENCE IF NOT EXISTS groupid START 100;
+CREATE TABLE IF NOT EXISTS groups (
+	gid INTEGER DEFAULT NEXTVAL('groupid'),	
+	registered TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+	sourceIP VARCHAR(15),
+	portnum INTEGER,
+	PRIMARY KEY (gid)
+);
+
+CREATE TABLE IF NOT EXISTS students_in (
+	infostr VARCHAR(12),
+	lastname VARCHAR(30),
+	firstmidname VARCHAR(60),
+	creditcode VARCHAR(5),
+	units VARCHAR(8)
+);
+
+CREATE SEQUENCE IF NOT EXISTS studentid START 100;
+CREATE TABLE IF NOT EXISTS students (
+	sid INTEGER DEFAULT NEXTVAL('studentid'),
+	level CHAR(1),
+	code CHAR(1),
+	lastname VARCHAR(30),
+	firstname VARCHAR(30),
+	middlename VARCHAR(30),
+	creditcode VARCHAR(5),
+	units VARCHAR(5),
+	login VARCHAR(8),
+	section INTEGER,
+	gid INTEGER,
+	UNIQUE (lastname, firstname, middlename),
+	UNIQUE (login),
+	PRIMARY KEY (sid),
+	FOREIGN KEY (gid) REFERENCES groups
+);
+

@@ -1,0 +1,36 @@
+---
+# tasks file for install_postgres
+
+- name: install repo
+  dnf:
+    name: 'https://download.postgresql.org/pub/repos/yum/reporpms/EL-8-x86_64/pgdg-redhat-repo-latest.noarch.rpm'
+    state: present
+
+# Отключаем старый модуль
+- name: disable old postgresql module
+  shell: dnf -qy module disable postgresql
+
+- name: Check if PostgreSQL is initialized
+  stat:
+    path: "/var/lib/pgsql/14/data/pg_hba.conf"
+  register: postgres_data
+
+- name: Install postgresql-server-14
+  dnf:
+    name:
+      - postgresql14-server
+    state: present
+    update_cache: true
+  when: not postgres_data.stat.exists
+
+- name: Инициализация кластера
+  command: /usr/pgsql-14/bin/postgresql-14-setup initdb
+  when: not postgres_data.stat.exists
+
+- name: Запуск postgresql-server
+  systemd:
+    name: postgresql-14
+    state: started
+    enabled: true
+
+

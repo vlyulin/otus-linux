@@ -1,0 +1,136 @@
+<?php
+
+// Initialize Constants
+define('NUMSTU', 3);
+
+// Initialize Variables
+for ($i=1; $i<=3; $i++) {
+   $FNArr[$i] = "";
+   $LNArr[$i] = "";
+   $CLArr[$i] = "cs186-??";
+   $ERRLNArr[$i]="";
+   $ERRFNArr[$i]="";
+   $ERRCLArr[$i]="";
+}
+$ERRDB="";
+
+// Check if the form was submitted
+if (@$_POST['PROCESS'] == "Y") {
+   $inValidFields = 0;
+
+   // Verify information present for each student
+   for ($i=1; $i<=NUMSTU; $i++) {
+      $FNArr[$i] = $_POST['M' . $i . 'FN'];
+      $LNArr[$i] = $_POST['M' . $i . 'LN'];
+      $CLArr[$i] = $_POST['M' . $i . 'CL'];
+
+      if (strlen($FNArr[$i]) < 1) {
+         $ERRFNArr[$i] = "[First name too short]";
+         $inValidFields++;
+      }
+
+      for($j=1; $j<$i; $j++) {
+         if (($FNArr[$i] == $FNArr[$j]) && ($LNArr[$i] == $LNArr[$j])) {
+             $ERRFNArr[$i] .= "[Duplicate Information]";
+             $inValidFields++;
+             break;
+         }
+      }
+
+      if (strlen($LNArr[$i]) < 1) {
+         $ERRLNArr[$i] = "[Last name too short]";
+         $inValidFields++;
+      }
+
+      if (strlen($CLArr[$i]) != 8) {
+         $ERRCLArr[$i] = "[Login should be 8 chars cs186-XX]";
+         $inValidFields++;
+      }
+
+      for($j=1; $j<$i; $j++) {
+         if ($CLArr[$i] == $CLArr[$j]) {
+             $ERRCLArr[$i] .= "[Duplicate Information]";
+             $inValidFields++;
+             break;
+         }
+      }
+   }
+
+   // If all is good, pass information on to the 'real' script
+   if ($inValidFields == 0) {
+	// $URL="http://rupert.cs.berkeley.edu/cs186/register.php?";
+	$URL="http://" . $_SERVER['HTTP_HOST'] . "/register.php?";
+        for ($i=1; $i<=NUMSTU; $i++) {
+           $URL .= "M" . $i . "FN=" . urlencode($FNArr[$i]) . "&";
+           $URL .= "M" . $i . "LN=" . urlencode($LNArr[$i]) . "&";
+           $URL .= "M" . $i . "CL=" . urlencode($CLArr[$i]) . "&";
+        }
+	$URL .= "IP=" . $_SERVER['REMOTE_ADDR'];
+
+	$DBResponseFile = @fopen($URL, "r");
+        if (! @feof($DBResponseFile)) {
+           $DBResponse = @fgets($DBResponseFile);
+           switch ($DBResponse) {
+              case 'INVALID':
+                 $ERRDB = "The database complained about the data not passing the validty checks. Make sure data is in the correct format. If this problem continues, email the TA: huebsch@cs.berkeley.edu";
+                 break;
+              case 'DATA':
+                 $ERRDB = "The database complained about the data. This could mean one or more students entered were not recognized or were already registered. Please verify the information and try again. If the problem continues please email your TA.";
+                 break;
+              case 'DB':
+                 $ERRDB = "The database had an internal error. Please email the TA: huebsch@cs.berkeley.edu.";
+                 break;
+              case 'OK':
+                 // header("Location: http://" . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . "/" . "success.php");
+                 header("Location: http://" . $_SERVER['HTTP_HOST'] . "/" . "success.php");
+                 break;
+              default:
+                 $ERRDB = "The database did not respond. Please email the TA: huebsch@cs.berkeley.edu";
+                 break;
+           }
+        }
+   }
+}
+?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/transitional.dtd">
+
+<HTML>
+<HEAD><TITLE>CS186 - Group Registation</TITLE></HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
+
+<img src="favicon/icons8-favicon-48.png" alt="img">
+<H2>Welcome to the CS186 Group Registation Website</H2>
+
+<P>Before continuing you will need to have already formed a group of 
+exactly 3 members. Each member must be registered in the class to be 
+accepted (wait listed students not accepted).
+
+<P>To register, you will need the complete first and last name (<B>as 
+listed on BearFacts</B>) along with their CS186 login of each member. Students 
+with multiple first/middle names listed, should only include the name up to first 
+space.
+
+<P>In order to protect your privacy, the errors reported by system are 
+intentionally vague.
+
+<P>You may enter the names in any order.
+
+<P><FONT COLOR="RED"><?= $ERRDB ?></FONT>
+
+<FORM ACTION="group-reg.php" METHOD="POST">
+<INPUT TYPE="hidden" NAME="PROCESS" VALUE="Y">
+<?php for ($i=1; $i<=NUMSTU; $i++) { ?>
+<P>Member <?= $i ?><BR>
+First Name: <INPUT TYPE="TEXT" NAME="M<?= $i ?>FN" SIZE="30" VALUE="<?= $FNArr[$i] ?>">
+   <FONT COLOR="RED"><?= $ERRFNArr[$i] ?></FONT><BR>
+Last Name: <INPUT TYPE="TEXT" NAME="M<?= $i ?>LN" SIZE="30" VALUE="<?= $LNArr[$i] ?>">
+   <FONT COLOR="RED"><?= $ERRLNArr[$i] ?></FONT><BR>
+Class Login: <INPUT TYPE="TEXT" NAME="M<?= $i ?>CL" SIZE="10" MAXLEN="8" VALUE="<?= $CLArr[$i] ?>">
+   <FONT COLOR="RED"><?= $ERRCLArr[$i] ?></FONT><BR>
+<?php } ?>
+<P><INPUT TYPE="SUBMIT" VALUE="Register Group!">
+</FORM>
+
+</BODY>
+</HTML>
+

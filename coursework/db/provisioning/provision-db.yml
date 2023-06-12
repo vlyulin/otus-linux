@@ -1,0 +1,77 @@
+---
+# Создание базы данных приложения 
+- name: Database creation 
+  hosts: master
+  become: true
+  become_user: postgres
+  vars:
+    db_name: cs186-groups 
+    db_user: cs186-www
+    db_password: apppassword
+    app_files_dest: /var/lib/pgsql/app
+
+  tasks:
+
+  - name: Create the database specified in vars
+    # become: true
+    # become_user: postgres
+    postgresql_db: name={{ db_name }}
+      template='template0'
+      state=present
+
+  - name: Ensure user has access to the new database
+    # become: true
+    # become_user: postgres
+    postgresql_user: db={{ db_name }}
+      name={{ db_user }}
+      password={{ db_password }}
+      priv=ALL
+      state=present
+
+  - name: Ensure user does not have unnecessary permissions
+    # become: true
+    # become_user: postgres
+    postgresql_user: name={{ db_user }}
+       role_attr_flags=NOSUPERUSER,NOCREATEDB
+       state=present
+
+  - name: "create app directory"
+    file:
+      path: "{{ app_files_dest }}"
+      state: directory
+      mode: '0775'
+      owner: "postgres"
+      group: "postgres"
+
+  - name: Copy website files to the server's document root
+    copy:
+      src: "{{ item }}"
+      dest: "{{ app_files_dest }}/"
+      owner: "postgres"
+      group: "postgres"
+      mode: preserve
+    with_fileglob:
+      - "app/*.sql"
+    tags: dbcreation
+
+  - name: Create tables 
+    community.postgresql.postgresql_script:
+      db: "{{ db_name }}"
+      path: "{{ app_files_dest }}/schema.sql"
+      encoding: "UTF-8"
+    tags: dbcreation
+
+  - name: Create views
+    community.postgresql.postgresql_script:
+      db: "{{ db_name }}"
+      path: "{{ app_files_dest }}/views.sql"
+      encoding: "UTF-8"
+    tags: dbcreation
+
+  - name: grants 
+    community.postgresql.postgresql_script:
+      db: "{{ db_name }}"
+      path: "{{ app_files_dest }}/access.sql"
+      encoding: "UTF-8"
+    tags: dbcreation
+

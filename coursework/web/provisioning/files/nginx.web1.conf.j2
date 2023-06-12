@@ -1,0 +1,29 @@
+server {
+  listen 80;
+  listen [::]:80;
+
+  root {{ document_root }}/{{ app_root }};
+  index group-reg.php;
+
+  server_name {{ server_name }};
+
+  # Serving static files directly from Nginx without passing through uwsgi 
+  location /app/static/ {
+       alias {{project_path}}/app/favicon/;
+  }
+
+  location /.well-known/acme-challenge/ {
+      root {{project_path}};
+  }
+
+  location ~ \.php$ {
+	include fastcgi_params;
+	include fastcgi.conf;
+	fastcgi_pass php1:9000;
+  }
+  
+  location / {
+   default_type "text/html";
+   try_files $uri.html $uri $uri/ =404;
+  }
+}

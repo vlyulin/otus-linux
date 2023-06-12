@@ -1,0 +1,66 @@
+---
+- name: Install app.
+  hosts: web1
+  become: yes
+  become_user: root
+  vars:
+    # server_name: "{{ ansible_default_ipv4.address }}"
+    # document_root: /var/www
+    document_root: /mnt/cephfs
+    templates_source: 'files/app/'
+    app_root: app
+    db_host: "192.168.56.31"
+    db_port: "5432"
+    db_name: "cs186-groups"
+    db_port: "5432"
+    db_user: "cs186-www"
+    db_password: "apppassword"
+
+  tasks:
+
+    - name: "create app directory"
+      file:
+        path: "{{ document_root }}/{{ app_root }}"
+        state: directory
+        mode: '0775'
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+
+    - name: Copy website files to the server's document root (once, because of ceph) 
+      copy:
+        src: "{{ item }}"
+        dest: "{{ document_root }}/{{ app_root }}/"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: preserve
+      with_fileglob:
+        - "app/*.php"
+
+    - name: "create app directory"
+      file:
+        path: "{{ document_root }}/{{ app_root }}/favicon"
+        state: directory
+        mode: '0775'
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+
+    - name: Copy static content
+      copy:
+        src: "{{ item }}"
+        dest: "{{ document_root }}/{{ app_root }}/favicon/"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: preserve
+      with_fileglob:
+        - "app/favicon/*"
+
+    - name: Apply Nginx template
+      template:
+        src: "{{ templates_source }}{{ item.tmpl }}"
+        dest: "{{ document_root }}/{{ app_root }}/{{ item.dname }}"
+      loop:
+        - { tmpl: 'db.php.j2', dname: 'db.php' }
+        - { tmpl: 'group-reg.php.j2', dname: 'group-reg.php' }
+        - { tmpl: 'register.php.j2', dname: 'register.php' }
+        - { tmpl: 'success.php.j2', dname: 'success.php' }
+

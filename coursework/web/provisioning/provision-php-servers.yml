@@ -1,0 +1,78 @@
+- name: Install php on web servers.
+  hosts: phpservers
+  become: true
+  become_user: root
+
+  tasks:
+
+  - rpm_key:
+      state: present
+      key: http://rpms.remirepo.net/enterprise/7/RPM-GPG-KEY-remi
+
+  - name: Install remi repo.
+    yum:
+      name: "http://rpms.remirepo.net/enterprise/remi-release-7.rpm"
+      state: present
+
+  - name: enable remi-php82
+    shell: "yum-config-manager --enable remi-php82"
+
+  - name: install php-fpm and its deps
+    yum: name={{item}} state=present
+    with_items:
+      - php
+      - php-fpm
+      - php-mbstring
+      - php-mcrypt
+      - php-pdo
+      - php-mysql
+      - php-xml
+      - php-gd
+      - php-soap
+      - php-pgsql
+
+  - name: Доступ к php-fpm
+    lineinfile:
+      path:  /etc/php-fpm.d/www.conf
+      # The String to Search
+      regexp: "listen = 127.0.0.1:9000"
+      # The String to Replace
+      line: "listen = 0.0.0.0:9000"
+      state: present
+      backup: yes
+
+  - name: Настройка логирования в php-fpm
+    lineinfile:
+      path:  /etc/php-fpm.d/www.conf
+      # The String to Search
+      regexp: ";catch_workers_output = yes"
+      # The String to Replace
+      line: "catch_workers_output = yes"
+      state: present
+      backup: yes
+
+  - name: Доступ к php-fpm 
+    lineinfile:
+      path:  /etc/php-fpm.d/www.conf
+      # The String to Search
+      regexp: "listen.allowed_clients = 127.0.0.1" 
+      # The String to Replace
+      line: "listen.allowed_clients = 127.0.0.1,192.168.56.20"
+      state: present
+      backup: yes
+    when: inventory_hostname == "php1"
+
+  - name: Доступ к php-fpm
+    lineinfile:
+      path:  /etc/php-fpm.d/www.conf
+      # The String to Search
+      regexp: "listen.allowed_clients = 127.0.0.1"
+      # The String to Replace
+      line: "listen.allowed_clients = 127.0.0.1,192.168.56.21"
+      state: present
+      backup: yes
+    when: inventory_hostname == "php2"
+
+  - name: restart php-fpm
+    service: name=php-fpm state=restarted
+

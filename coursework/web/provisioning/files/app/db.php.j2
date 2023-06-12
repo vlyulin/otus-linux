@@ -1,0 +1,111 @@
+<?
+
+function connectDB($dbname, $user, $pass) {
+   // Setup the connection parameters
+   $hostStr = "host={{ db_name }} port={{ db_port }}";
+   $dbStr = "dbname=" . $dbname;
+   $userStr = "user=" . $user;
+   $passStr = "password=" . $pass;
+
+   // Put it all together
+   $connStr = $hostStr . " " . $dbStr . " " . $userStr . " " . $passStr;
+
+   // Make the connection, suppress errors
+   $dbconn = @pg_connect($connStr);
+   return $dbconn;
+}
+
+function checkStudent($dbconn, $first, $last) {
+   // Convert to uppercase
+   $fixedFirst = strtoupper($first);
+   $fixedLast = strtoupper($last);
+
+   // Put the SQL statement together
+   $sql = "SELECT gid FROM students WHERE lastname='" . $fixedLast . "' AND firstname='" . $fixedFirst . "';";
+
+   // Run the SQL statement
+   $result = @pg_query($sql);
+
+   // Check if the DB returned a result object (not necessarily success)
+   if (! $result)
+      return -1;
+
+   // Return with error if we did not locate exactly 1 tuple (student not found)
+   if (pg_num_rows($result) != 1)
+      return -2;
+
+   // Return with error if the gid field is not null (student already registered)
+   if (! pg_field_is_null($result, 0, 0))
+      return -3;
+
+   // All good
+      return 0;
+}
+
+function addGroup($dbconn, $ip) {
+   // Put the SQL statement together
+   $sql = "INSERT INTO groups (sourceIP) VALUES('" . $ip . "');";
+
+   // Run the SQL statement
+   $result = @pg_query($sql);
+
+   // Check if the DB returned a response object
+   if (! $result)
+      return -1;
+
+   // Check if 1 row was affected (inserted/deleted/updated)
+   if (pg_affected_rows($result) != 1)
+      return -2;
+
+   // Generate the SQL to retrieve the tuple we just inserted using OID (a PostgreSQL trick)
+   $gidsql = "SELECT gid FROM groups WHERE oid=" . pg_last_oid($result) . ";";
+
+   // Run the SQL statement
+   $gidresult = @pg_query($gidsql);
+
+   // Check if the DB returned a response object
+   if (! $gidresult)
+      return -3;
+  
+   // Check if exactly 1 row was located
+   if (pg_num_rows($gidresult) != 1)
+      return -4;
+
+   // Retrieve the gid automatically assigned and return it
+   $gidrow = pg_fetch_row($gidresult, 0);
+   return ($gidrow[0]);
+}
+
+function registerStudent($dbconn, $first, $last,  $login, $gid) {
+   // Convert to uppercase
+   $fixedFirst = strtoupper($first);
+   $fixedLast = strtoupper($last);
+   $fixedLogin = strtolower($login);
+
+   // Put the SQL statement together
+   $sql = "UPDATE students SET login='" . $fixedLogin . "', gid='" . $gid;
+   $sql .= "' WHERE firstname='" . $fixedFirst . "' AND lastname='" . $fixedLast . "';";
+
+   // Run the SQL statement
+   $result = @pg_query($sql);
+
+   // Check if the DB returned a response object
+   if (! $result)
+      return -1;
+
+   // Check if we updated exactly 1 row
+   if (pg_affected_rows($result) != 1)
+      return -2;
+   return 0;
+}
+
+function addLog($dbconn, $ipSrv, $ipClt, $data) {
+   // Put the SQL statement together
+   $sql = "INSERT INTO log (ipSrv, ipClt, data) VALUES('" . $ipSrv . "','" . $ipClt . "','" . $data . "');";
+
+   // Run the SQL statement
+   pg_query($sql);
+}
+
+
+?>

@@ -1,0 +1,58 @@
+# -*- mode: ruby -*-
+# vim: set ft=ruby :
+
+MACHINES = {
+  :master => {
+        :box_name => "centos/stream8",
+        :ip_addr => '192.168.56.31'
+  },
+  :slave => {
+        :box_name => "centos/stream8",
+        :ip_addr => '192.168.56.32'
+  },
+  :barman => {
+	:box_name => "centos/stream8",
+	:ip_addr => "192.168.56.33"
+  }
+}
+
+Vagrant.configure("2") do |config|
+
+  config.vbguest.auto_update = false if Vagrant.has_plugin?('vagrant-vbguest')
+
+  MACHINES.each do |boxname, boxconfig|
+
+      config.vm.define boxname do |box|
+
+          box.vm.box = boxconfig[:box_name]
+          box.vm.host_name = boxname.to_s
+
+          box.vm.network "private_network", ip: boxconfig[:ip_addr]
+
+          box.vm.provider :virtualbox do |vb|
+            vb.customize ["modifyvm", :id, "--memory", "1024"]
+          end
+
+          box.vm.provision :shell do |s|
+             s.inline = 'mkdir -p ~root/.ssh; cp ~vagrant/.ssh/auth* ~root/.ssh'
+          end
+
+          if boxname.to_s == "barman"
+	     config.vm.provision "all", type: "ansible" do |ansible|
+            	ansible.playbook = "provisioning/provision-all.yml"
+            	ansible.inventory_path = "provisioning/hosts"
+            	ansible.host_key_checking = "false"
+            	ansible.limit = "all"
+             end
+             config.vm.provision "dbcreation", type: "ansible" do |ansible|
+                ansible.playbook = "provisioning/provision-db.yml"
+                ansible.inventory_path = "provisioning/hosts"
+                ansible.host_key_checking = "false"
+                ansible.limit = "master"
+		ansible.tags="dbcreation"
+             end
+          end
+
+      end
+  end
+end

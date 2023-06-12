@@ -1,0 +1,48 @@
+---
+# Настройка ceph на webservers и phpservers
+- name: Setup ceph
+  hosts: webservers, phpservers
+  become: true
+  become_user: root
+  vars:
+    cephkey: "{{ lookup('file', '/home/vl/otus-linux/coursework/ceph-ansible/buffer/ceph.key') }}"
+  
+  tasks:   
+
+  - name: Ceph repository
+    yum_repository:
+      name: ceph-noarch
+      description: Ceph noarch
+      file: ceph
+      baseurl: https://download.ceph.com/rpm-nautilus/el7/noarch/
+      gpgcheck: yes
+      gpgkey: https://download.ceph.com/keys/release.gpg
+      # when: ansible_distribution == 'CentOS' and ansible_distribution_version == '7' 
+
+  - name: install soft
+    yum:
+      name:
+        - ceph-common
+      state: present
+
+  - name: Creates directory
+    file:
+      dest: /mnt/cephfs
+      state: directory
+      mode: 0775
+
+  - name: mount /mnt/cephfs 
+    mount:
+      fstype: ceph
+      src: "mon0:6789:/"
+      name: "/mnt/cephfs"
+      state: mounted
+      opts: "rw,name=admin,secret={{cephkey}}"
+
+  - name: Add mount record into /etc/fstab
+    lineinfile:
+      path: /etc/fstab
+      line: "mon0:6789:/        /mnt/cephfs     ceph    name=admin,secret={{cephkey}},noatime,_netdev   0       2|"
+    tags: cephkey      
+
+
