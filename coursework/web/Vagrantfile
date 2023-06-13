@@ -30,7 +30,7 @@ MACHINES = {
 Vagrant.configure("2") do |config|
 
   config.vbguest.auto_update = false if Vagrant.has_plugin?('vagrant-vbguest')
-  config.vm.boot_timeout = 60
+  config.vm.boot_timeout = 600
 
   MACHINES.each do |boxname, boxconfig|
 

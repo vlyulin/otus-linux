@@ -1,0 +1,39 @@
+---
+# Общая настройка всех ВМ
+- name: Get keys
+  hosts: mon0
+  become: true
+  become_user: root
+  tasks:
+   
+  - name: 
+    shell: ceph-authtool -p /etc/ceph/ceph.client.admin.keyring
+
+  - name: get ceph key
+    shell: ceph-authtool -p /etc/ceph/ceph.client.admin.keyring
+    register: key_result
+    ignore_errors: True
+
+  - name: Save key to file
+    become: false
+    copy: 
+      content: "{{ key_result.stdout }}" 
+      dest: "./buffer/ceph.key"
+    delegate_to: localhost
+
+
+
+  # - name: Fetch ceph keyfile from mds0
+  #  fetch:
+  #    src: "/etc/ceph/ceph.client.admin.keyring"
+  #    dest: "buffer/ceph.key"
+  #    flat: yes
+  #  when: inventory_hostname == "mon0"
+
+
+  # - name: Fetch the keyfile from mon0
+  #  fetch:
+  #    src: "/home/vagrant/.ssh/authorized_keys"
+  #    dest: "buffer/mon0-id_rsa.pub"
+  #    flat: yes
+  #  when: inventory_hostname == "mon0"

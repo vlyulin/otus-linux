@@ -233,6 +233,21 @@ mount -t ceph <Monitor_IP>:<Monitor_port>:/ <mount_point_name> -o name=cephfs,se
 Было в планах настроить сбор метрик с backend-серверов и серверов базыданных.
 Но это не было реализовано из-за недостатка времени.
 
+Узнать dashboard URL можно следующими командами на сервере mon0:  
+```
+vagrant ssh mon0
+sudo -i
+ceph mgr services
+```
+
+![grafana-url](imgs/setup/grafana-url.png)
+
+Скриншоты grafana:
+
+![dashboard-main](imgs/grafana/dashboard-main.png)
+
+![cluster](imgs/grafana/cluster.png)
+
 <a name="db"></a>
 ### База данных
 
@@ -256,6 +271,14 @@ CQRS – подход проектирования программного об
 
 > **__Note:__** Подход CQRS в данном проекте не реализован.
 
+Таблицы приложения:
+
+![db-tables](imgs/db/db-tables.png)
+
+Данныеб созданные приложением:
+
+![app-data](imgs/app-data.png)
+
 <a name="backup"></a>
 ### Требование "организован backup"
 
@@ -271,9 +294,9 @@ CQRS – подход проектирования программного об
 ### Требования к программному обеспечению
 
 Решение было развернуто с использованием следующего программного обеспечения:  
-  - Virtual Box
-  - Vagrant
-  - Ansible
+  - Virtual Box 6.1
+  - Vagrant 2.3.4
+  - ansible 2.9.6
 
 Проектное решение разворачивается в следующем порядке:  
 
@@ -298,7 +321,7 @@ sudo -i
 ceph -s
 ```
 
-???
+![ceph-s](imgs/setup/ceph-s.png)
 
 > **__Note__** Доустановка dashboard описана на ресурсе 
 https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/4/html/dashboard_guide/ceph-dashboard-installation-and-access
@@ -379,12 +402,11 @@ cp vagrant_variables.yml.sample vagrant_variables.yml
 ```
 
 Внести в созданном файле требуемые параметры установки.
-???
 
 Указать количество требуемых виртуальных серверов:  
 ```
 # DEFINE THE NUMBER OF VMS TO RUN
-mon_vms: 3
+mon_vms: 1
 osd_vms: 3
 mds_vms: 1
 rgw_vms: 0
@@ -396,6 +418,13 @@ iscsi_gw_vms: 0
 mgr_vms: 0
 ```
 
+Установить ip для public и cluster сетей:
+```
+# SUBNETS TO USE FOR THE VMS
+public_subnet: 192.168.57
+cluster_subnet: 192.168.10
+```
+
 Указать требуемое количество дисков:  
 ```
 disks: [ '/dev/sdb', '/dev/sdc' ]
@@ -405,25 +434,54 @@ disks: [ '/dev/sdb', '/dev/sdc' ]
 vagrant_box: centos/7
 ```
 
+Настроить главный файл установки ceph.  
 Скопировать файл  
 ```
 cp coursework\ceph-ansible\site.yml.sample coursework\ceph-ansible\site.yml
 ```
-???
 
-Переименовать файл  
+И указать в нем список настраиваемых хостов:
+
+```
+- hosts:
+  - mons
+  - osds
+  - mdss
+  - rgws
+  - clients
+  - mgrs
+  - grafana-server
+```
+
+Переименовать файл 
 ```
 cp coursework\ceph-ansible\group_vars\all.yml.sample coursework\ceph-ansible\group_vars\all.yml
 ```
 
 Внести в файл all.yml требуемые значения переменных.
-???
 
-Установить ip для public и cluster сетей:
 ```
-# SUBNETS TO USE FOR THE VMS
-public_subnet: 192.168.57
-cluster_subnet: 192.168.10
+###########
+# GENERAL #
+###########
+ceph_origin: repository
+ceph_repository: community
+ceph_repository_type: cdn
+ceph_stable_release: nautilus
+
+public_network: 192.168.56.0/24
+cluster_network: 192.168.57.0/24
+
+# monitor_interface: eth1
+monitor_address_block: 192.168.56.0/24
+radosgw_address_block: 192.168.56.0/24
+
+# journal_size: 5120
+# fetch_directory: ./ceph-ansible-keys
+# containerized_deployment: false
+
+dashboard_admin_password: cephpass
+grafana_admin_password: cephpass
 ```
 
 В all.yml указать необходимость установки dashboard:
@@ -458,9 +516,7 @@ barman ansible_host=192.168.56.33 ansible_user=vagrant ansible_ssh_private_key_f
 
 Доступ к базе данных с других серверов настраивается на сервере master в файле /var/lib/pgsql/14/data/pg_hba.conf  
 
-```
-???
-```
+![access-to-db](imgs/db/access-to-db.png)
 
 **Файлы:**  
 provision-all.yml - общие настройки для всех серверов.  
