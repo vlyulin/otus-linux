@@ -126,21 +126,21 @@
     when: acme_challenge is changed and domain_name|string in acme_challenge['challenge_data']
   
   # Execute letsencrypt challenge.
-#  - name: Let the challenge be validated and retrieve the cert and intermediate certificate
-#    become: yes
-#    community.crypto.acme_certificate:
-#      account_key_src: "{{letsencrypt_account_key}}"
-#      csr: "{{letsencrypt_csrs_dir}}/{{domain_name}}.csr"
-#      cert: "{{letsencrypt_certs_dir}}/{{domain_name}}.crt"
-#      acme_directory: "{{acme_directory}}"
-#      acme_version: "{{acme_version}}"
-#      account_email: "{{acme_email}}"
-#      challenge: "{{acme_challenge_type}}"
-#      fullchain: "{{letsencrypt_certs_dir}}/{{domain_name}}-fullchain.crt"
-#      chain: "{{letsencrypt_certs_dir}}/{{domain_name}}-intermediate.crt"
-#      remaining_days: "{{remaining_days}}"
-#      data: "{{ acme_challenge }}"
-#    when: acme_challenge is changed
+  - name: Let the challenge be validated and retrieve the cert and intermediate certificate
+    become: yes
+    community.crypto.acme_certificate:
+      account_key_src: "{{letsencrypt_account_key}}"
+      csr: "{{letsencrypt_csrs_dir}}/{{domain_name}}.csr"
+      cert: "{{letsencrypt_certs_dir}}/{{domain_name}}.crt"
+      acme_directory: "{{acme_directory}}"
+      acme_version: "{{acme_version}}"
+      account_email: "{{acme_email}}"
+      challenge: "{{acme_challenge_type}}"
+      fullchain: "{{letsencrypt_certs_dir}}/{{domain_name}}-fullchain.crt"
+      chain: "{{letsencrypt_certs_dir}}/{{domain_name}}-intermediate.crt"
+      remaining_days: "{{remaining_days}}"
+      data: "{{ acme_challenge }}"
+    when: acme_challenge is changed
 
   - name: Apply Nginx template
     template:

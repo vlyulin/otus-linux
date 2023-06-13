@@ -7,6 +7,15 @@ server {
 
   server_name {{ server_name }};
 
+  # Serving static files directly from Nginx without passing through uwsgi 
+  location /app/favicon/ {
+       alias {{project_path}}/app/favicon/;
+  }
+
+  location /.well-known/acme-challenge/ {
+      root {{project_path}};
+  }
+
   location ~ \.php$ {
         include fastcgi_params;
         include fastcgi.conf;

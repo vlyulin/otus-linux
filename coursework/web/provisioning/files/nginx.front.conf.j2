@@ -55,15 +55,15 @@ http {
     #   }
     #}
  
-#    server {
-#       listen 80;
-#       listen [::]:80;
-#     
-#       server_name app {{ server_name }};
-#     
-#       location / {
-#     	  proxy_pass http://app;
-#       }
-#    }
+    server {
+       listen 80;
+       listen [::]:80;
+     
+       server_name app {{ server_name }};
+     
+       location / {
+     	  proxy_pass http://app;
+       }
+    }
 }
 

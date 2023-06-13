@@ -26,15 +26,15 @@
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
 
-    - name: Copy website files to the server's document root (once, because of ceph) 
-      copy:
-        src: "{{ item }}"
-        dest: "{{ document_root }}/{{ app_root }}/"
-        owner: "{{ ansible_user }}"
-        group: "{{ ansible_user }}"
-        mode: preserve
-      with_fileglob:
-        - "app/*.php"
+    # - name: Copy website files to the server's document root (once, because of ceph) 
+    #  copy:
+    #    src: "{{ item }}"
+    #    dest: "{{ document_root }}/{{ app_root }}/"
+    #    owner: "{{ ansible_user }}"
+    #    group: "{{ ansible_user }}"
+    #    mode: preserve
+    #  with_fileglob:
+    #    - "app/*.php"
 
     - name: "create app directory"
       file:

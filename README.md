@@ -1,4 +1,4 @@
-# Курс "Administrator Linux. Profeccional", OTUS
+# Курс "Administrator Linux. Professional", OTUS
 Студент: Люлин Вадим
 
 ## Содержание
@@ -29,3 +29,5 @@
 * [ДЗ: LDAP](Lesson24/README.md)
 * [ДЗ: Репликация mysql](Lesson25/README.md)
 * [ДЗ: Репликация Postgres](Lesson26/README.md)
+* [Проект](coursework/README.md)
+

@@ -8,7 +8,7 @@ server {
   server_name {{ server_name }};
 
   # Serving static files directly from Nginx without passing through uwsgi 
-  location /app/static/ {
+  location /app/favicon/ {
        alias {{project_path}}/app/favicon/;
   }
 
