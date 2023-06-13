@@ -20,8 +20,9 @@
 [Настройки](#settings)  
 	[Настройки Ceph](#ceph-setup)  
 	[Настройки базы данных](#db-setup)  
-	[Настройки front и backend ](#web-setup)  
+	[Настройки front и backend ](#web-setup)  	
 
+<a name="target"></a>
 ## Цель
 
 Создание рабочего проекта
@@ -37,12 +38,14 @@
 - организован централизованный сбор логов (по желанию);
 - организован backup.
 
+<a name="project-description"></a>
 ## Описание проектного решения
 
 **Архитектура**
 
 ![architecture](imgs/architecture.png)
 
+<a name="web-desc"></a>
 ### Web-часть проекта. Требование "Web-приложение долно быть реализовано на php"
 
 В качестве web-приложения было взято первое попавшееся web-решение написанное на php и работающее с PostgreSQL базой данных, 
@@ -53,7 +56,7 @@
 Для статического контента в Nginx на web1 и web2 выполнены следующие настройки:
 
 ``` 
-# Serving static files directly from Nginx without passing through uwsgi 
+  # Serving static files directly from Nginx without passing through uwsgi 
   location /app/favicon/ {
        alias {{project_path}}/app/favicon/;
   }
@@ -65,6 +68,7 @@
 
 См. файлы: coursework\web\provisioning\files\nginx.web1.conf.j2 и nginx.web2.conf.j2
 
+<a name="php-desc"></a>
 ### Требование "Выполнение php-скриптов должно быть реализовано на отдельных серверах"
 
 Для выполнения php-скриптов используются два отдельных сервера php1 и php2.
@@ -81,6 +85,7 @@ location ~ \.php$ {
 ```
 (см. шаблоны coursework\web\provisioning\files\nginx.web1.conf.j2 и nginx.web1.conf.j2)
 
+<a name="https-desc"></a>
 ### Требования "включен https", "основная инфраструктура в DMZ зоне" и "firewall на входе"
 
 Для реализации данных требований создан отдельный сервер front с установленным на нем Nginx.
@@ -159,6 +164,7 @@ Cм. файл coursework\web\provisioning\provision-fronts-servers.yml
 
 Основная инфраструктура в DMZ зоне от frontend пока не отделена из-за недоставтка времени на реализацию.
 
+<a name="claster-desc"></a>
 ### Требование "каталог сайта бекэнда общий, кластерный"
 
 Данное требование выполнено на основе ПО Ceph.
@@ -194,6 +200,7 @@ Ceph предоставляет на выбор три различных абстракции для работы с хранилищем:
 Работает по схеме активная копия + резервы, причем активная копия в пределах кластера только одна.
 Именно данный демон используется в проекте для возможности получения единой копии файлов приложения через монтирование к единой точке /mnt/cephfs/.
 
+<a name="mds-access"></a>
 #### Доступ к Ceph MDS c клиентов
 
 На сервере mon получить ключ доступа, который указан в файле /etc/ceph/ceph.client.admin.keyring.  
@@ -218,6 +225,7 @@ mount -t ceph mon0:6789:/ /mnt/cephfs -o name=cephfs,secret=AQCb2HFkjDMjFRAArWY9
 mount -t ceph <Monitor_IP>:<Monitor_port>:/ <mount_point_name> -o name=cephfs,secret=<admin_user_key>
 ```
 
+<a name="metrics"></a>
 ### Требование "сбор метрик и настроенный алертинг"
 
 Данное требование выполнено частично.
@@ -225,6 +233,7 @@ mount -t ceph <Monitor_IP>:<Monitor_port>:/ <mount_point_name> -o name=cephfs,se
 Было в планах настроить сбор метрик с backend-серверов и серверов базыданных.
 Но это не было реализовано из-за недостатка времени.
 
+<a name="db"></a>
 ### База данных
 
 В качестве базы данных используется PostgreSQL настроенный по схеме master - slave.  
@@ -247,6 +256,7 @@ CQRS – подход проектирования программного обеспечения, при котором код, изменяющ
 
 > **__Note:__** Подход CQRS в данном проекте не реализован.
 
+<a name="backup"></a>
 ### Требование "организован backup"
 
 Резервирование базы данных реализовано с использованием ПО Barman, менеджера бэкапов для серверов PostgreSQL.  
@@ -254,8 +264,10 @@ CQRS – подход проектирования программного обеспечения, при котором код, изменяющ
 
 > **__Ref:__** Документация: https://docs.pgbarman.org/release/3.5.0/
 
+<a name="project-install"></a>
 ## Установка проекта
 
+<a name="software-requirements"></a>
 ### Требования к программному обеспечению
 
 Решение было развернуто с использованием следующего программного обеспечения:  
@@ -265,6 +277,7 @@ CQRS – подход проектирования программного обеспечения, при котором код, изменяющ
 
 Проектное решение разворачивается в следующем порядке:  
 
+<a name="ceph-installation"></a>
 ### Установка Ceph
 
 Перейти в фиректорию coursework\ceph-ansible.  
@@ -290,6 +303,7 @@ ceph -s
 > **__Note__** Доустановка dashboard описана на ресурсе 
 https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/4/html/dashboard_guide/ceph-dashboard-installation-and-access
 
+<a name="db-installation"></a>
 ### Установка базы данных
 
 Перейти в фиректорию coursework\db.  
@@ -301,6 +315,7 @@ vagrant up --no-provision
 vagrant up --provision
 ```
 
+<a name="web-installation"></a>
 ### Установка front и backend
 
 Перейти в фиректорию coursework\web.  
@@ -311,8 +326,10 @@ vagrant up --no-provision
 vagrant up --provision
 ```
 
+<a name="settings"></a>
 ## Настройки
 
+<a name="ceph-setup"></a>
 ### Настройки Ceph
 
 > **_Note__** Использовались материалы https://docs.ceph.com/projects/ceph-ansible/en/latest/index.html и https://red-hat-storage.github.io/ceph-test-drive-bootstrap/Module-2/
@@ -424,7 +441,7 @@ dashboard_admin_password: ********
 Настройка и установка MDS описана на ресурсе 
 https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/2/html/ceph_file_system_guide_technology_preview/installing_and_configuring_ceph_metadata_servers_mds
 
-
+<a name="db-setup"></a>
 ### Настройки базы данных
 
 В файле coursework\db\provisioning\hosts указать сервера базы данных:  
@@ -479,7 +496,8 @@ bash-4.4$ barman check master
 bash-4.4$ barman backup master
 ```
 
-### Настройки front и backend 
+<a name="web-setup"></a>
+### Настройки front и backend
 
 В файле coursework\web\provisioning\hosts указать сервера базы данных:  
 
