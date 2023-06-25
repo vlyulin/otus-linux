@@ -4,8 +4,6 @@
   become: yes
   become_user: root
   vars:
-    # server_name: "{{ ansible_default_ipv4.address }}"
-    # document_root: /var/www
     document_root: /mnt/cephfs
     templates_source: 'files/app/'
     app_root: app
@@ -25,16 +23,6 @@
         mode: '0775'
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
-
-    # - name: Copy website files to the server's document root (once, because of ceph) 
-    #  copy:
-    #    src: "{{ item }}"
-    #    dest: "{{ document_root }}/{{ app_root }}/"
-    #    owner: "{{ ansible_user }}"
-    #    group: "{{ ansible_user }}"
-    #    mode: preserve
-    #  with_fileglob:
-    #    - "app/*.php"
 
     - name: "create app directory"
       file:

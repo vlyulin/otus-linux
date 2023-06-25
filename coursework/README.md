@@ -51,6 +51,24 @@
 В качестве web-приложения было взято первое попавшееся web-решение написанное на php и работающее с PostgreSQL базой данных, 
 которое было доработано для выполнения минимальной требуемой функциональности.
 
+Функциональность:
+
+Создание регистрационных данных студентов в неких студенческих группах.
+
+Пример работы приложения:
+
+1. Ввод регистрационных данных
+
+![web2-group-reg](imgs/app/web2-group-reg.png)
+
+2. Подтверждение регистрации
+
+![web2-success](imgs/app/web2-success.png)
+
+3. Введенные данные в базе данных PostgreSQL
+
+![db-records](imgs/app/db-records.png)
+
 Данное web-приложение развертывается на двух backend-серверах, web1 и web2, с установленным на них Nginx. 
 
 Для статического контента в Nginx на web1 и web2 выполнены следующие настройки:
@@ -77,13 +95,32 @@
 Выполнение php-скриптов на отдельном сервере настраивается в файле конфигурации /etc/nginx/conf.d/app.conf web-сервера Nginx добавлением следующей настройки:
 
 ```
-location ~ \.php$ {
-	include fastcgi_params;
-	include fastcgi.conf;
-	fastcgi_pass php1:9000;
+  location ~ \.php$ {
+        include fastcgi_params;
+        include fastcgi.conf;
+        fastcgi_pass {{ phpserver }}:9000;
   }
 ```
-(см. шаблоны coursework\web\provisioning\files\nginx.web1.conf.j2 и nginx.web1.conf.j2)
+(см. шаблоны coursework\web\provisioning\files\nginx.web.conf.j2)
+
+Значение переменной phpserver определяется в соответствующих файлах для конкретного настраиваемого сервера:
+
+1. web/provisioning/host_vars/web1
+2. web/provisioning/host_vars/web2
+
+Имя файла web1.yml или web2.yml должно совпадать с именем настраиваемого хоста в ansible файле inventory.
+
+В моём случае это web/provisioning/hosts, который определяется как inventory файл в web/provisioning/ansible.cfg
+
+```
+[defaults]
+#Отключение проверки ключа хоста
+host_key_checking = false
+#Указываем имя файла инвентаризации
+inventory = hosts
+#Отключаем игнорирование предупреждений
+command_warnings = false
+```
 
 <a name="https-desc"></a>
 ### Требования "включен https", "основная инфраструктура в DMZ зоне" и "firewall на входе"
@@ -103,46 +140,17 @@ http {
      server 192.168.56.21;
   }
   ...
-  server {
-     listen 80;
-     listen [::]:80;
-     
-     server_name app {{ server_name }};
-     
-     location / {
-   	  proxy_pass http://app;
-     }
-  }
 ```
 
 В качестве метода балансировки выбран метод **least_conn**, 
 когда распределение запросов выполняется backend-серверу с наименьшим количеством активных подключений.
 
-Настройка https начата, но не доведена до рабочего состояния.  
-Застрял на шагах генерации сертификатов:  
+Настройка https выполнена с помощью ПО mkcert.
+См. файл web/provisioning/provision-ssh.yml
 
-```
-  # Execute letsencrypt challenge.
-  - name: Let the challenge be validated and retrieve the cert and intermediate certificate
-    become: yes
-    community.crypto.acme_certificate:
-      account_key_src: "{{letsencrypt_account_key}}"
-      csr: "{{letsencrypt_csrs_dir}}/{{domain_name}}.csr"
-      cert: "{{letsencrypt_certs_dir}}/{{domain_name}}.crt"
-      acme_directory: "{{acme_directory}}"
-      acme_version: "{{acme_version}}"
-      account_email: "{{acme_email}}"
-      challenge: "{{acme_challenge_type}}"
-      fullchain: "{{letsencrypt_certs_dir}}/{{domain_name}}-fullchain.crt"
-      chain: "{{letsencrypt_certs_dir}}/{{domain_name}}-intermediate.crt"
-      remaining_days: "{{remaining_days}}"
-      data: "{{ acme_challenge }}"
-    when: acme_challenge is changed
-```
+Сделано на основе ресурса: https://web.dev/i18n/ru/how-to-use-local-https/
 
-Cм. файл coursework\web\provisioning\provision-fronts-servers.yml  
-
-Настройка выполняется на сервере front в конфигурационном файле /etc/nginx/nginx.conf.
+Настройка ssh выполняется на сервере front в конфигурационном файле /etc/nginx/nginx.conf.
 
 ```
     server {
@@ -150,19 +158,29 @@ Cм. файл coursework\web\provisioning\provision-fronts-servers.yml
         listen [::]:443 ssl;
         ssl_certificate /etc/letsencrypt/certs/{{domain_name}}-fullchain.crt;
         ssl_certificate_key /etc/letsencrypt/keys/{{domain_name}}.key;
-       
-
-        server_name app {{ server_name }};
-
-        location / {
-           proxy_pass http://app;
-        }
+	...
     }
 ```
 
 (см. шаблон coursework\web\provisioning\files\nginx.front.conf.j2)
 
-Основная инфраструктура в DMZ зоне от frontend пока не отделена из-за недоставтка времени на реализацию.
+Скриншоты работы ssh:
+
+Вход в приложение на сервере front:
+
+![warning-potential-resk-aheadpng](imgs/https/warning-potential-resk-aheadpng.png)
+
+Просмотр сертификата:
+
+![front-certificate](imgs/https/front-certificate.png)
+
+Приложение на сервере front:
+
+![front-https-app](imgs/https/front-https-app.png)
+
+Https на сервере web1
+
+![web1-https-app](imgs/https/web1-https-app.png)
 
 <a name="claster-desc"></a>
 ### Требование "каталог сайта бекэнда общий, кластерный"
@@ -267,7 +285,7 @@ CQRS – подход проектирования программного об
 
 > **__Ref:__** https://habr.com/ru/companies/simbirsoft/articles/329970/
 
-![cqrs](imgs\cqrs.svg)
+![cqrs](imgs/cqrs.svg)
 
 > **__Note:__** Подход CQRS в данном проекте не реализован.
 
@@ -578,12 +596,11 @@ provision-web-servers.yml - настрока Nginx на backend-серверах
 
 #### Настройка доступа к php-frm c backend-серверов (web1, web2)
 
-Сервера с которых возможен доступ указывается в файле vim /etc/php-fpm.conf или vim /etc/php-fpm.d/www.conf  
+Сервера с которых возможен доступ указывается в файле vim /etc/php-fpm.conf или vim /etc/php-fpm.d/www.conf    
 
-```
-listen.allowed_clients = 127.0.0.1
-```
-???
+Соответствующая задача в файле provisions-php-servers.yml
+ 
+![php-server-access](imgs/php/php-server-access.png)
 
 #### Проверка работоспособности php-fpm на серверах php
 

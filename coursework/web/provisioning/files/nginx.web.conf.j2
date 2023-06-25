@@ -1,6 +1,11 @@
 server {
   listen 80;
   listen [::]:80;
+  listen 443 default_server ssl;
+  listen [::]:443 default_server ssl;
+  
+  ssl_certificate /etc/pki/ca-trust/source/anchors/{{ inventory_hostname }}.pem;
+  ssl_certificate_key /etc/pki/ca-trust/source/anchors/{{ inventory_hostname }}-key.pem;
 
   root {{ document_root }}/{{ app_root }};
   index group-reg.php;
@@ -19,7 +24,7 @@ server {
   location ~ \.php$ {
 	include fastcgi_params;
 	include fastcgi.conf;
-	fastcgi_pass php1:9000;
+	fastcgi_pass {{ phpserver }}:9000;
   }
   
   location / {

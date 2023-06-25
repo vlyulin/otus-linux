@@ -6,7 +6,6 @@
   become_user: root
   vars:
     server_name: "{{ ansible_all_ipv4_addresses | ipaddr('private') | first }}"
-    # "{{ ansible_default_ipv4.address }}"
     app_root: app
     document_root: /mnt/cephfs
     project_path: /mnt/cephfs
@@ -21,17 +20,8 @@
 
   - name: Apply Nginx template
     template:
-      src: files/nginx.web1.conf.j2
+      src: files/nginx.web.conf.j2
       dest: "/etc/nginx/conf.d/{{ app_root }}.conf"
-      # notify: Restart Nginx
-    when: inventory_hostname == "web1"
-
-  - name: Apply Nginx template
-    template:
-      src: files/nginx.web2.conf.j2
-      dest: "/etc/nginx/conf.d/{{ app_root }}.conf"
-      # notify: Restart Nginx
-    when: inventory_hostname == "web2"
 
   - name: Start nginx
     service:

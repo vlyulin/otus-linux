@@ -1,0 +1,46 @@
+---
+# Настройка web и front серверов
+- name: ssh keys creation.
+  hosts: webservers, fronts
+  become: true
+  become_user: root
+  gather_facts: false
+
+  tasks:   
+
+  - name: install soft
+    yum: name={{item}} state=present
+    with_items:
+      - nss-tools
+
+  - name: Download mkcert-v*-linux-amd64
+    get_url: 
+      url: https://dl.filippo.io/mkcert/latest?for=linux/amd64
+      dest: /usr/local/bin/mkcert
+      mode: '0700'
+      validate_certs: false
+
+  - name: Add mkcert to your local root CAs.
+    shell: /usr/local/bin/mkcert -install
+
+  - debug: "/usr/local/bin/mkcert {{ inventory_hostname }}"
+
+  - name: Generate a certificate for site, signed by mkcert.
+    shell: /usr/local/bin/mkcert {{ inventory_hostname }}
+
+  - name: check {{ inventory_hostname }}.pem
+    stat: path=./{{ inventory_hostname }}.pem
+    register: public_key_stat
+
+  - name: Move foo to /etc/pki/ca-trust/source/anchors/{{ inventory_hostname }}.pem
+    command: mv ./{{ inventory_hostname }}.pem /etc/pki/ca-trust/source/anchors/{{ inventory_hostname }}.pem
+    when: public_key_stat.stat.exists
+
+  - name: check {{ inventory_hostname }}-key.pem
+    stat: path=./{{ inventory_hostname }}-key.pem
+    register: private_key_stat
+
+  - name: Move foo to /etc/pki/ca-trust/source/anchors/{{ inventory_hostname }}-key.pem
+    command: mv ./{{ inventory_hostname }}-key.pem /etc/pki/ca-trust/source/anchors/{{ inventory_hostname }}-key.pem
+    when: private_key_stat.stat.exists
+

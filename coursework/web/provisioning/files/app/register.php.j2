@@ -26,13 +26,13 @@ function connectDB($dbhost, $dbport, $dbname, $user, $pass) {
 
    // Put it all together
    $connStr = $hostStr . " " . $dbStr . " " . $userStr . " " . $passStr;
-   // echo $connStr;
+   echo $connStr;
 
    // Make the connection, suppress errors
    try {
      // $dbconn = @pg_connect($connStr);
      $dbconn = pg_connect($connStr) or die("Could not connect");
-     // echo pg_last_error($dbconn);
+     echo pg_last_error($dbconn);
    } Catch (Exception $e) {
      Echo $e->getMessage();
    }
@@ -77,12 +77,12 @@ function addGroup($dbconn, $ip) {
    // }
    if ($result) {
         while ($row = pg_fetch_row($result)) {
-          // echo "fetch gid: $row[0] <br>";
+          echo "fetch gid: $row[0] <br>";
           return $row[0];
         }
    }
    else {
-        // echo "Not selected. " . $sql . "<br>";
+        echo "Not selected. " . $sql . "<br>";
    }
 
    // if (pg_affected_rows($result) = 1) {
@@ -94,32 +94,32 @@ function addGroup($dbconn, $ip) {
    $sql = "INSERT INTO groups (sourceIP) VALUES('" . $ip . "');";
 
    // Run the SQL statement
-   // echo "SQL: " . $sql . "<br>";
+   echo "SQL: " . $sql . "<br>";
    // $result = @pg_query($dbconn, $sql);
    $result = pg_query($dbconn, $sql);
 
    // Check if the DB returned a response object
    if (!$result) {
-      // echo "! result: -1 <br>" . pg_last_error($dbconn) . "<br>";
-      // echo pg_last_error($dbconn);
+      echo "! result: -1 <br>" . pg_last_error($dbconn) . "<br>";
+      echo pg_last_error($dbconn);
       return -1;
    }
 
    // Check if 1 row was affected (inserted/deleted/updated)
    if (pg_affected_rows($result) != 1) {
-      // echo "affected_rows: -2 <br>";
+      echo "affected_rows: -2 <br>";
       return -2;
    }
 
    $sql = "SELECT gid FROM groups WHERE sourceIP = '" . $ip . "' LIMIT 1;";
    $result = @pg_query($sql);
-   // if (! $result) {
-   //    echo $sql . " Not selected.<br>";
-   //    return -1;
-   // }
+   if (! $result) {
+       echo $sql . " Not selected.<br>";
+       return -1;
+   }
    if ($result) {
         while ($row = pg_fetch_row($result)) {
-          // echo "fetch gid: $row[0] <br>";
+          echo "fetch gid: $row[0] <br>";
           return $row[0];
         }
    }

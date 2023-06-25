@@ -17,7 +17,6 @@
       baseurl: https://download.ceph.com/rpm-nautilus/el7/noarch/
       gpgcheck: yes
       gpgkey: https://download.ceph.com/keys/release.gpg
-      # when: ansible_distribution == 'CentOS' and ansible_distribution_version == '7' 
 
   - name: install soft
     yum:
@@ -36,13 +35,9 @@
       fstype: ceph
       src: "mon0:6789:/"
       name: "/mnt/cephfs"
-      state: mounted
-      opts: "rw,name=admin,secret={{cephkey}}"
+      # state: mounted
+      state: present
+      opts: "rw,name=admin,secret={{cephkey}},noatime,_netdev"
 
-  - name: Add mount record into /etc/fstab
-    lineinfile:
-      path: /etc/fstab
-      line: "mon0:6789:/        /mnt/cephfs     ceph    name=admin,secret={{cephkey}},noatime,_netdev   0       2|"
-    tags: cephkey      
 
 

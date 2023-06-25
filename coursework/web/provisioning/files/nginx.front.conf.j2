@@ -41,23 +41,14 @@ http {
          server 192.168.56.21;
     }
   
-    # server {
-    #   listen 443 ssl;
-       # listen [::]:443 ssl;
-    #   ssl_certificate /etc/letsencrypt/certs/{{domain_name}}-fullchain.crt;
-    #   ssl_certificate_key /etc/letsencrypt/keys/{{domain_name}}.key;
-       
-
-    #   server_name app {{ server_name }};
-
-    #   location / {
-    #      proxy_pass http://app;
-    #   }
-    #}
- 
     server {
        listen 80;
        listen [::]:80;
+       listen 443 default_server ssl;
+       listen [::]:443 default_server ssl;
+
+       ssl_certificate /etc/pki/ca-trust/source/anchors/{{ inventory_hostname }}.pem;
+       ssl_certificate_key /etc/pki/ca-trust/source/anchors/{{ inventory_hostname }}-key.pem;
      
        server_name app {{ server_name }};
      

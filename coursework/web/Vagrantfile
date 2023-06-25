@@ -2,7 +2,15 @@
 # vim: set ft=ruby :
 
 MACHINES = {
-  
+ 
+  :php1 => {
+        :box_name => "centos/7",
+        :ip_addr => '192.168.56.23'
+  },
+  :php2 => {
+        :box_name => "centos/7",
+        :ip_addr => '192.168.56.24'
+  }, 
   :web1 => {
         :box_name => "centos/7",
         :ip_addr => '192.168.56.20'
@@ -11,37 +19,30 @@ MACHINES = {
         :box_name => "centos/7",
         :ip_addr => '192.168.56.21'
   },
-  :php1 => {
-	:box_name => "centos/7",
-        :ip_addr => '192.168.56.23'
-  },
-  :php2 => {
-        :box_name => "centos/7",
-        :ip_addr => '192.168.56.24'
-  },
   :front => {
   	:box_name => "centos/7",
         :ip_addr => '192.168.56.25'
   }
 }
 
-# geerlingguy/centos8
-
 Vagrant.configure("2") do |config|
 
   config.vbguest.auto_update = false if Vagrant.has_plugin?('vagrant-vbguest')
-  config.vm.boot_timeout = 600
+  config.vm.boot_timeout = 800
 
   MACHINES.each do |boxname, boxconfig|
 
       config.vm.define boxname do |box|
 
+          box.vm.box_check_update = false
           box.vm.box = boxconfig[:box_name]
           box.vm.host_name = boxname.to_s
 
           box.vm.network "private_network", ip: boxconfig[:ip_addr]
 
           box.vm.provider :virtualbox do |vb|
+            # vb.gui = true
+            # vb.cpus = 1
             vb.customize ["modifyvm", :id, "--memory", "1024"]
           end
 
@@ -64,18 +65,25 @@ Vagrant.configure("2") do |config|
                 ansible.limit = "webservers, phpservers"
                 # ansible.tags="nginx"
              end
+             config.vm.provision "php", type: "ansible" do |ansible|
+                ansible.playbook = "provisioning/provision-php-servers.yml"
+                ansible.inventory_path = "provisioning/hosts"
+                ansible.host_key_checking = "false"
+                ansible.limit = "phpservers"
+             end
+             config.vm.provision "ssh", type: "ansible" do |ansible|
+                ansible.playbook = "provisioning/provision-ssh.yml"
+                ansible.inventory_path = "provisioning/hosts"
+                ansible.host_key_checking = "false"
+                ansible.limit = "webservers, fronts"
+                # ansible.tags="nginx"
+             end
 	     config.vm.provision "web", type: "ansible" do |ansible|
             	ansible.playbook = "provisioning/provision-web-servers.yml"
             	ansible.inventory_path = "provisioning/hosts"
             	ansible.host_key_checking = "false"
 		ansible.limit = "webservers"
 	 	# ansible.tags="nginx"
-             end
-             config.vm.provision "php", type: "ansible" do |ansible|
-                ansible.playbook = "provisioning/provision-php-servers.yml"
-                ansible.inventory_path = "provisioning/hosts"
-                ansible.host_key_checking = "false"
-                ansible.limit = "phpservers"
              end
              config.vm.provision "app", type: "ansible" do |ansible|
                 ansible.playbook = "provisioning/provision-app.yml"
