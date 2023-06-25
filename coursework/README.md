@@ -293,9 +293,9 @@ CQRS – подход проектирования программного об
 
 ![db-tables](imgs/db/db-tables.png)
 
-Данныеб созданные приложением:
+Данные созданные приложением:
 
-![app-data](imgs/app-data.png)
+![app-data](imgs/db/app-data.png)
 
 <a name="backup"></a>
 ### Требование "организован backup"
